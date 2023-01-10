@@ -4,5 +4,7 @@
 # replace ssh remote
 [url "https://github.com/"]
 	insteadOf = ssh://git@github.com/
+	insteadOf = git@github.com:
 [url "https://gitlab.com/"]
 	insteadOf = ssh://git@gitlab.com/
+	insteadOf = git@gitlab.com:
