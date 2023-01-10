@@ -150,7 +150,7 @@ def main(argv: list[str]):
     invoke_cmake_install(os.path.join(ort.src, "cmake"), ort.bin, *common_cmake_args, *ort_cmake_args)
 
     paddle2onnx = src_bin_dirs("paddle2onnx")
-    clone_git_repo("https://github.com/MaaAssistantArknights/Paddle2ONNX", "7ff2a1ace5121b15e1273c5028c4a7f2a523a1f4", paddle2onnx.src, skip_update=config.skip_src_update)
+    clone_git_repo("https://github.com/MaaAssistantArknights/Paddle2ONNX", "8718eb81a6a21f13fbde7b79f3b8745c9aee0491", paddle2onnx.src, skip_update=config.skip_src_update)
 
     fastdeploy = src_bin_dirs("fastdeploy")
     clone_git_repo("https://github.com/MaaAssistantArknights/FastDeploy", "9cb37186b72c032e59ccaf61d55c7ba7e8bcadb0", fastdeploy.src, skip_update=config.skip_src_update)
