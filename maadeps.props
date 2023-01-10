@@ -12,4 +12,7 @@
       <AdditionalLibraryDirectories>$(MaaDepsPrefix)\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
+  <Target Name="MessageNotExists" BeforeTargets="Build" Condition="Exists($(MaaDepsPrefix))">
+    <Error Text="Dependencies not found for $(MaaDepsTriplet), run MaaDeps/download.py to download prebuilt binaries or MaaDeps/build.py to build from source." />
+  </Target>
 </Project>
