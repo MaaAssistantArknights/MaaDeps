@@ -133,7 +133,7 @@ def main(argv: list[str]):
     protoc_basename = "protoc.exe" if os.name == 'nt' else "protoc"
     protoc_path = os.path.join(protoc_dir, protoc_basename)
 
-    os.environ["PATH"] = protoc_path + os.pathsep + os.environ["PATH"]
+    # os.environ["PATH"] = protoc_path + os.pathsep + os.environ["PATH"]
 
     ort = src_bin_dirs("onnxruntime")
     clone_git_repo("https://github.com/microsoft/onnxruntime", "v1.12.1", ort.src, skip_update=config.skip_src_update)
@@ -159,7 +159,8 @@ def main(argv: list[str]):
         "-DENABLE_ORT_BACKEND=ON",
         "-DORT_DIRECTORY:PATH=" + vcpkg.install_prefix,
         "-DOPENCV_DIRECTORY:PATH=" + vcpkg.install_prefix,
-        "-DPaddle2ONNX_SRC:PATH=" + paddle2onnx.src
+        "-DPaddle2ONNX_SRC:PATH=" + paddle2onnx.src,
+        "-DONNX_CUSTOM_PROTOC_PATH:FILEPATH=" + protoc_dir,
     )
 
     # tarball
