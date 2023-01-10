@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <MaaDepsTriplet Condition="'$(Platform)'=='x64'">maa-x64-windows</MaaDepsTriplet>
+    <MaaDepsTriplet Condition="'$(Platform)'=='ARM64'">maa-arm6464-windows</MaaDepsTriplet>
+    <MaaDepsPrefix>$(MSBuildThisFileDirectory)vcpkg\installed\$(MaaDepsTriplet)</MaaDepsPrefix>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(MaaDepsPrefix)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(MaaDepsPrefix)\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>
