@@ -1,12 +1,9 @@
 import sys
 import os
 
-basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "pefile.zip")
-sys.path.insert(0, basedir)
-
 def find_pdb_file(filename):
     # type: (str) -> bytes | None
-    import pefile
+    from vendor import pefile
     pe = pefile.PE(filename, fast_load=True)
     pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_DEBUG']])
     for entry_record in pe.DIRECTORY_ENTRY_DEBUG:

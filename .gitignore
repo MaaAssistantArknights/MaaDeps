@@ -1,3 +1,5 @@
 build
 src
 *.tar.xz
+
+__pycache__
