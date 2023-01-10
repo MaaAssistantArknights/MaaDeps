@@ -45,17 +45,18 @@ class Dirs:
     bin: str
 
 def clone_git_repo(url, ref, dest, skip_update=False):
+    git_command = ["git", "-c", "include.path=" + os.path.join(basedir, "git-override.config")]
     if os.path.isdir(os.path.join(dest, ".git")):
         if skip_update:
             return
-        subprocess.check_call(["git", "fetch", url, ref, "--depth", "1"], cwd=dest)
-        subprocess.check_call(["git", "reset", "--hard", "FETCH_HEAD"], cwd=dest)
+        subprocess.check_call([*git_command, "fetch", url, ref, "--depth", "1"], cwd=dest)
+        subprocess.check_call([*git_command, "reset", "--hard", "FETCH_HEAD"], cwd=dest)
     else:
         os.makedirs(dest, exist_ok=True)
-        subprocess.check_call(["git", "init"], cwd=dest)
-        subprocess.check_call(["git", "fetch", url, ref, "--depth", "1"], cwd=dest)
-        subprocess.check_call(["git", "reset", "--hard", "FETCH_HEAD"], cwd=dest)
-    subprocess.check_call(["git", "submodule", "update", "--init", "--recursive", "--recommend-shallow", "--depth", "1"], cwd=dest)
+        subprocess.check_call([*git_command, "init"], cwd=dest)
+        subprocess.check_call([*git_command, "fetch", url, ref, "--depth", "1"], cwd=dest)
+        subprocess.check_call([*git_command, "reset", "--hard", "FETCH_HEAD"], cwd=dest)
+    subprocess.check_call([*git_command, "submodule", "update", "--init", "--recursive", "--recommend-shallow", "--depth", "1"], cwd=dest)
 
 def apply_patches(source_dir, patch_files: list[str]):
     for patch_file in patch_files:
