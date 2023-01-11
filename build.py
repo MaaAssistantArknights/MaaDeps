@@ -116,17 +116,26 @@ def main(argv: list[str]):
         # "-DCMAKE_TOOLCHAIN_FILE:FILEPATH=" + vcpkg.toolchain_file,
         # "-DVCPKG_TARGET_TRIPLET=" + vcpkg.triplet.removeprefix("maa-"),
         # "-DVCPKG_OVERLAY_TRIPLETS:PATH=" + vcpkg_overlay_triplets,
-        "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+        "-DCMAKE_BUILD_TYPE=Release",
         "-DCMAKE_INSTALL_PREFIX:PATH=" + vcpkg.install_prefix,
         *extra_cmake_args
     ]
     
     if vcpkg.triplet == 'maa-arm64-windows':
-        common_cmake_args.append("-DCMAKE_SYSTEM_PROCESSOR=ARM64")
+        common_cmake_args.append("-DCMAKE_TOOLCHAIN_FILE:FILEPATH=" + os.path.join(basedir, "toolchains", "toolchain-msvc-arm64.cmake"))
     elif vcpkg.triplet == 'maa-x64-windows':
-        common_cmake_args.append("-DCMAKE_SYSTEM_PROCESSOR=AMD64")
+        common_cmake_args.append("-DCMAKE_TOOLCHAIN_FILE:FILEPATH=" + os.path.join(basedir, "toolchains", "toolchain-msvc-x64.cmake"))
 
     if 'windows' in vcpkg.triplet:
+        cflags="/Zi /Gy /O2 /DNDEBUG /MD"
+        ldflags="/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO"
+        common_cmake_args.extend([
+            "-DCMAKE_C_FLAGS_RELEASE=" + cflags,
+            "-DCMAKE_CXX_FLAGS_RELEASE=/wd4127 " + cflags,
+            "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=" + ldflags,
+            "-DCMAKE_SHARED_LINKER_FLAGS_RELEASE=" + ldflags,
+            "-DCMAKE_MODULE_LINKER_FLAGS_RELEASE=" + ldflags,
+        ])
         common_cmake_args.append("-DCMAKE_SHARED_LIBRARY_SUFFIX_CXX=_maa.dll")
         # TODO: suffix for other platforms
 
