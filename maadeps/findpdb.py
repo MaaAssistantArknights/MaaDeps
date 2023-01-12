@@ -3,7 +3,7 @@ import os
 
 def find_pdb_file(filename):
     # type: (str) -> bytes | None
-    from vendor import pefile
+    from .vendor import pefile
     pe = pefile.PE(filename, fast_load=True)
     pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_DEBUG']])
     for entry_record in pe.DIRECTORY_ENTRY_DEBUG:

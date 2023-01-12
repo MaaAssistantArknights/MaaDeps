@@ -1,0 +1,24 @@
+<Project>
+
+  <Target Name="MessageNotExists" BeforeTargets="Build" Condition="!Exists($(MaaDepsPrefix))">
+    <Error Text="Dependencies not found for $(MaaDepsTriplet), run MaaDeps/download.py to download prebuilt binaries or MaaDeps/build.py to build from source." />
+  </Target>
+
+
+
+    <Target Name="CopyMaaDepsRuntimeFilesVC" AfterTargets="AfterBuild" >
+        <ItemGroup>
+            <MaaDepsRuntimeFiles Include="$(MaaDepsRuntime)\**\*.*"/>
+        </ItemGroup>
+        <Copy Condition="'$(TargetDir)' != ''"
+            SourceFiles="@(MaaDepsRuntimeFiles)"
+            DestinationFiles="$(TargetDir)\%(RecursiveDir)%(Filename)%(Extension)"
+        />
+        <Copy Condition="'$(TargetDir)' == '' and '$(OutputPath)' != ''"
+            SourceFiles="@(MaaDepsRuntimeFiles)"
+            DestinationFiles="$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)"
+        />
+    </Target>
+
+
+</Project>

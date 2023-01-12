@@ -1,8 +1,9 @@
 <Project>
   <PropertyGroup>
     <MaaDepsTriplet Condition="'$(Platform)'=='x64'">maa-x64-windows</MaaDepsTriplet>
-    <MaaDepsTriplet Condition="'$(Platform)'=='ARM64'">maa-arm6464-windows</MaaDepsTriplet>
-    <MaaDepsPrefix>$(MSBuildThisFileDirectory)vcpkg\installed\$(MaaDepsTriplet)</MaaDepsPrefix>
+    <MaaDepsTriplet Condition="'$(Platform)'=='ARM64'">maa-arm64-windows</MaaDepsTriplet>
+    <MaaDepsPrefix>$(MSBuildThisFileDirectory)..\vcpkg\installed\$(MaaDepsTriplet)</MaaDepsPrefix>
+    <MaaDepsRuntime>$(MSBuildThisFileDirectory)..\runtime\$(MaaDepsTriplet)</MaaDepsRuntime>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -12,7 +13,4 @@
       <AdditionalLibraryDirectories>$(MaaDepsPrefix)\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <Target Name="MessageNotExists" BeforeTargets="Build" Condition="Exists($(MaaDepsPrefix))">
-    <Error Text="Dependencies not found for $(MaaDepsTriplet), run MaaDeps/download.py to download prebuilt binaries or MaaDeps/build.py to build from source." />
-  </Target>
 </Project>

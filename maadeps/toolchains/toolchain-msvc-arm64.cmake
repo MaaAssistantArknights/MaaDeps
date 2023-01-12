@@ -5,3 +5,5 @@ set(CMAKE_C_COMPILER cl)
 set(CMAKE_CXX_COMPILER cl)
 set(CMAKE_RC_COMPILER rc)
 set(CMAKE_ASM_MASM_COMPILER armasm64)
+
+include(${CMAKE_CURRENT_LIST_DIR}/msvc-defaults.cmake)

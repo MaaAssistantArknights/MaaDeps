@@ -1,0 +1,16 @@
+{
+  "name": "lapack",
+  "version-date": "2023-01-12",
+  "description": "always use CLAPACK on windows",
+  "license": null,
+  "dependencies": [
+    {
+      "name": "clapack",
+      "platform": "windows | uwp"
+    },
+    {
+      "name": "lapack-reference",
+      "platform": "!(windows | uwp)"
+    }
+  ]
+}
