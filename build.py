@@ -18,7 +18,6 @@ def vcpkg_bootstrap():
 def vcpkg_install():
     vcpkg.install("opencv4[core,eigen,lapack,jpeg,png,tiff,world]", "re2", "boost-config", "boost-mp11", "protobuf", "flatbuffers")
 
-
 def main():
     session.parse_args(sys.argv)
 
@@ -63,7 +62,13 @@ def build_extra_packages():
 
     ort = BuildTree("onnxruntime")
     ort.fetch_git_repo("https://github.com/microsoft/onnxruntime", "v1.12.1", submodules=False)
-    for mod in ["onnx", "SafeInt", "tensorboard", "dlpack", "cxxopts", "pytorch_cpuinfo", "date", "json", "wil"]:
+    submodules = ["onnx", "SafeInt", "tensorboard", "dlpack", "cxxopts", "pytorch_cpuinfo", "date", "json"]
+    if 'windows' in vcpkg.triplet:
+        submodules.append("wil")
+    elif "linux" in vcpkg.triplet:
+        submodules.append("nsync")
+
+    for mod in submodules:
         gitutil.update_sumbodule(ort.source_dir, f"cmake/external/{mod}")
     subprocess.check_call([sys.executable, "compile_schema.py", "--flatc", flatc], cwd=os.path.join(ort.source_dir, "onnxruntime/core/flatbuffers/schema"))
     ort_cmake_args = [
