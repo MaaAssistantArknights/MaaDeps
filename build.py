@@ -2,11 +2,11 @@
 import os
 import sys
 sys.dont_write_bytecode = True
-
+import subprocess
 import glob
 from pathlib import PurePath
 
-from maadeps import basedir, resdir, host_triplet, BuildTree, session, vcpkg, runtime
+from maadeps import basedir, resdir, host_triplet, BuildTree, session, vcpkg, runtime, gitutil
 
 from maadeps.runner import task
 
@@ -16,7 +16,7 @@ def vcpkg_bootstrap():
 
 @task
 def vcpkg_install():
-    vcpkg.install("opencv4[core,eigen,lapack,jpeg,png,tiff,world]", "opencv[core,eigen,lapack,jpeg,png,tiff,world]", "protobuf")
+    vcpkg.install("opencv4[core,eigen,lapack,jpeg,png,tiff,world]", "re2", "boost-config", "boost-mp11", "protobuf", "flatbuffers")
 
 
 def main():
@@ -54,20 +54,28 @@ def build_extra_packages():
 
     vcpkg.install("protobuf", triplet=host_triplet)
     protoc_dir = os.path.join(vcpkg.root, "installed", host_triplet, "tools", "protobuf")
-    protoc_basename = "protoc.exe" if os.name == 'nt' else "protoc"
-    protoc_path = os.path.join(protoc_dir, protoc_basename)
+    exe_suffix = ".exe" if os.name == 'nt' else ""
+    protoc_path = os.path.join(protoc_dir, "protoc" + exe_suffix)
+    flatc = os.path.join(vcpkg.root, "installed", host_triplet, "tools", "flatbuffers", "flatc" + exe_suffix)
+    eigen_path = os.path.join(vcpkg.root, "installed", vcpkg.triplet, "include", "eigen3")
 
     # os.environ["PATH"] = protoc_path + os.pathsep + os.environ["PATH"]
 
     ort = BuildTree("onnxruntime")
-    ort.fetch_git_repo("https://github.com/microsoft/onnxruntime", "v1.12.1")
+    ort.fetch_git_repo("https://github.com/microsoft/onnxruntime", "v1.12.1", submodules=False)
+    for mod in ["onnx", "SafeInt", "tensorboard", "dlpack", "cxxopts", "pytorch_cpuinfo", "date", "json", "wil"]:
+        gitutil.update_sumbodule(ort.source_dir, f"cmake/external/{mod}")
+    subprocess.check_call([sys.executable, "compile_schema.py", "--flatc", flatc], cwd=os.path.join(ort.source_dir, "onnxruntime/core/flatbuffers/schema"))
     ort_cmake_args = [
         "-Donnxruntime_BUILD_SHARED_LIB=ON",
         "-Donnxruntime_BUILD_UNIT_TESTS=OFF",
-        "-Donnxruntime_PREFER_SYSTEM_LIB=ON",
         "-Donnxruntime_ENABLE_LTO=ON",
         "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON",
+        "-Donnxruntime_PREFER_SYSTEM_LIB=ON",
         "-DProtobuf_USE_STATIC_LIBS=ON",
+        "-Donnxruntime_USE_PREINSTALLED_EIGEN=ON",
+        "-Deigen_SOURCE_PATH:PATH=" + eigen_path,
+        "-DFLATBUFFERS_BUILD_FLATC=OFF",
         "-DONNX_CUSTOM_PROTOC_EXECUTABLE:FILEPATH=" + protoc_path,
     ]
     if vcpkg.cross_compiling:
