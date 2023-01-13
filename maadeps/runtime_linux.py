@@ -1,11 +1,15 @@
+import os
 from pathlib import Path
+import subprocess
+
+from .common import resdir
 
 exclude = [
     "*onnxruntime_providers_shared*",
 ]
 
 def set_rpath(file, rpath):
-    pass
+    subprocess.check_call(["cmake", "-DFILE:PATH=" + str(file), "-DRPATH=" + rpath, "-P", os.path.join(resdir, "rpath_set.cmake")])
 
 def is_elf(file):
     with open(file, "rb") as f:
