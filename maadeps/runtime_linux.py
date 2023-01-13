@@ -29,14 +29,6 @@ def get_soname(file):
                     return tag.soname
     return None
 
-def rename_to_soname(file):
-    soname = get_soname(file)
-    if soname is not None:
-        p = Path(file)
-        if p.name != soname:
-            print("rename", p, "to", soname)
-            p.rename(p.with_name(soname))
-
 def install_runtime(target):
     from . import vcpkg
     prefix = Path(vcpkg.install_prefix)
@@ -48,7 +40,10 @@ def install_runtime(target):
         if file.is_symlink() or not file.is_file():
             continue
         if is_elf(file):
-            target_path = target / file.name
+            soname = get_soname(file)
+            if soname is not None:
+                target_path = target / soname
+            else:
+                target_path = target / file.name
             install_file(file, target_path)
             set_rpath(target_path, '$ORIGIN')
-            rename_to_soname(target_path)
