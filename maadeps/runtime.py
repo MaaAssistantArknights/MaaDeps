@@ -33,3 +33,9 @@ def install_file(src, dst):
     print("installing", src, "->", dst)
     Path(dst).parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(src, dst)
+
+def match_patterns(path: Path, patterns):
+    for pat in patterns:
+        if path.match(pat):
+            return True
+    return False

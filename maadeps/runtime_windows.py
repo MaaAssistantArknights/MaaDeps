@@ -14,17 +14,11 @@ exclude = [
     "bin/libstdc++-6.dll",
 ]
 
-def match_patterns(path: Path, patterns):
-    for pat in patterns:
-        if path.match(pat):
-            return True
-    return False
-
 def install_runtime(target_dir):
     from . import vcpkg
     prefix = Path(vcpkg.install_prefix)
     target = Path(target_dir)
-    from .runtime import install_file
+    from .runtime import install_file, match_patterns
     for file in prefix.glob("bin/**/*"):
         if (match_patterns(file, exclude)):
             continue
