@@ -9,7 +9,7 @@ exclude = [
 ]
 
 def set_rpath(file, rpath):
-    subprocess.check_call(["cmake", "-DFILE:PATH=" + str(file), "-DRPATH=" + rpath, "-P", os.path.join(resdir, "rpath_set.cmake")])
+    subprocess.check_call(["patchelf", "--set-rpath", rpath, file])
 
 def is_elf(file):
     with open(file, "rb") as f:
