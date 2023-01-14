@@ -6,12 +6,14 @@ import subprocess
 import glob
 from pathlib import PurePath
 
-from maadeps import basedir, resdir, host_triplet, BuildTree, session, vcpkg, runtime, gitutil
+from maadeps import basedir, resdir, host_triplet, BuildTree, session, vcpkg, runtime, gitutil, common
 
 from maadeps.runner import task
 
 @task
 def vcpkg_bootstrap():
+    if session.target is None:
+        session.target = "maa-" + common.host_triplet
     vcpkg.bootstrap(session.target)
 
 @task
