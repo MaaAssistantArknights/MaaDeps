@@ -1,0 +1,21 @@
+{
+  "name": "maa-fastdeploy",
+  "version": "2023-01-15",
+  "port-version": 1,
+  "description": "derp learning routines",
+  "homepage": "https://github.com/MaaAssistantArknights/FastDeploy",
+  "license": "Apache-2.0",
+  "supports": "!uwp",
+  "dependencies": [
+    {
+      "name": "opencv4",
+      "default-features": false
+    },
+    "eigen3",
+    "maa-onnxruntime",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    }
+  ]
+}

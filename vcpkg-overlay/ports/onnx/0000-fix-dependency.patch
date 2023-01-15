@@ -1,0 +1,41 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f914e78..0450f0c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -114,8 +114,8 @@ endif()
+ # find_package Python has replaced PythonInterp and PythonLibs since cmake 3.12
+ # Use the following command in the future; now this is only compatible with the latest pybind11
+ # find_package(Python ${PY_VERSION} COMPONENTS Interpreter Development REQUIRED)
+-find_package(PythonInterp ${PY_VERSION} REQUIRED)
+-find_package(PythonLibs ${PY_VERSION})
++find_package(Python3 ${PY_VERSION} COMPONENTS Interpreter REQUIRED)
++set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+ 
+ if(CMAKE_SYSTEM_NAME STREQUAL "AIX")
+   set(CMAKE_NO_SYSTEM_FROM_IMPORTED 1)
+@@ -126,6 +126,7 @@ if(ONNX_BUILD_TESTS)
+   include(googletest)
+ endif()
+ 
++find_package(protobuf CONFIG REQUIRED)
+ if((ONNX_USE_LITE_PROTO AND TARGET protobuf::libprotobuf-lite) OR ((NOT ONNX_USE_LITE_PROTO) AND TARGET protobuf::libprotobuf))
+   # Sometimes we need to use protoc compiled for host architecture while linking
+   # libprotobuf against target architecture. See https://github.com/caffe2/caffe
+@@ -614,7 +615,7 @@ endif()
+ 
+ if (NOT ANDROID AND NOT IOS)
+   # ---[ ONNXIFI wrapper
+-  add_library(onnxifi_wrapper MODULE onnx/onnxifi_wrapper.c)
++  add_library(onnxifi_wrapper onnx/onnxifi_wrapper.c)
+   if(MSVC)
+     add_msvc_runtime_flag(onnxifi_wrapper)
+   endif()
+@@ -644,7 +645,7 @@ if (NOT ANDROID AND NOT IOS)
+ endif()
+ 
+ # ---[ ONNXIFI dummy backend
+-add_library(onnxifi_dummy SHARED onnx/onnxifi_dummy.c)
++add_library(onnxifi_dummy onnx/onnxifi_dummy.c)
+ 
+ if(ONNXIFI_ENABLE_EXT)
+   add_definitions(-DONNXIFI_ENABLE_EXT=ON)

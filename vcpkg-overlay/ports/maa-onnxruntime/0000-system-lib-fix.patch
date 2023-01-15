@@ -1,0 +1,161 @@
+diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
+index fb4899d..d6b7dbd 100644
+--- a/cmake/CMakeLists.txt
++++ b/cmake/CMakeLists.txt
+@@ -854,7 +854,7 @@ get_filename_component(REPO_ROOT "${REPO_ROOT}" ABSOLUTE)
+ set(ONNXRUNTIME_INCLUDE_DIR ${REPO_ROOT}/include/onnxruntime)
+ 
+ if (onnxruntime_PREFER_SYSTEM_LIB)
+-  find_package(date)
++  find_package(date CONFIG)
+ endif()
+ if (date_FOUND)
+   message("Use date from preinstalled system lib")
+@@ -864,7 +864,7 @@ else()
+   add_subdirectory(external/date EXCLUDE_FROM_ALL)
+ endif()
+ 
+-set(SAFEINT_INCLUDE_DIR ${REPO_ROOT}/cmake/external/SafeInt)
++find_path(SAFEINT_INCLUDE_DIR NAMES "SafeInt.hpp" PATHS_SUFFIXES include)
+ add_library(safeint_interface INTERFACE)
+ target_include_directories(safeint_interface INTERFACE ${SAFEINT_INCLUDE_DIR})
+ 
+@@ -961,6 +961,7 @@ if (CPUINFO_SUPPORTED)
+ 
+   if (onnxruntime_PREFER_SYSTEM_LIB)
+     find_package(cpuinfo)
++    add_library(cpuinfo ALIAS cpuinfo::cpuinfo)
+   endif()
+   if (cpuinfo_FOUND)
+     message("Use cpuinfo from preinstalled system lib")
+@@ -1560,19 +1561,11 @@ else()
+ endif()
+ 
+ if (NOT onnxruntime_MINIMAL_BUILD)
+-  add_subdirectory(external/onnx EXCLUDE_FROM_ALL)
++  find_package(ONNX REQUIRED)
+ else()
+   include(onnx_minimal)
+ endif()
+ 
+-target_compile_definitions(onnx PUBLIC $<TARGET_PROPERTY:onnx_proto,INTERFACE_COMPILE_DEFINITIONS> PRIVATE "__ONNX_DISABLE_STATIC_REGISTRATION")
+-if (NOT onnxruntime_USE_FULL_PROTOBUF)
+-  target_compile_definitions(onnx PUBLIC "__ONNX_NO_DOC_STRINGS")
+-endif()
+-set_target_properties(onnx PROPERTIES FOLDER "External/ONNX")
+-set_target_properties(onnx_proto PROPERTIES FOLDER "External/ONNX")
+-
+-
+ # fix a warning in onnx code we can't do anything about
+ if (MSVC)
+    string(APPEND CMAKE_CXX_FLAGS " -DEIGEN_HAS_C99_MATH") # required to be set explicitly to enable Eigen-Unsupported SpecialFunctions
+diff --git a/cmake/external/abseil-cpp.cmake b/cmake/external/abseil-cpp.cmake
+index 816f0ab..6c81d4c 100644
+--- a/cmake/external/abseil-cpp.cmake
++++ b/cmake/external/abseil-cpp.cmake
+@@ -1,34 +1,4 @@
+ # Copyright (c) Microsoft Corporation. All rights reserved.
+ # Licensed under the MIT License.
+ 
+-include(FetchContent)
+-
+-# Pass to build
+-set(ABSL_PROPAGATE_CXX_STD 1)
+-set(BUILD_TESTING 0)
+-
+-if(Patch_FOUND)
+-  set(ABSL_PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/abseil/Fix_Nvidia_Build_Break.patch)
+-else()
+-  set(ABSL_PATCH_COMMAND git apply --ignore-space-change --ignore-whitespace ${PROJECT_SOURCE_DIR}/patches/abseil/Fix_Nvidia_Build_Break.patch)
+-endif()
+-
+-FetchContent_Declare(
+-    abseil_cpp
+-    PREFIX "${CMAKE_CURRENT_BINARY_DIR}/abseil-cpp"
+-    BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/external/abseil-cpp"
+-    URL https://github.com/abseil/abseil-cpp/archive/refs/tags/20211102.0.zip
+-    URL_HASH SHA1=ce61532df974d00025b1220408ce1c900d81baf2
+-    PATCH_COMMAND ${ABSL_PATCH_COMMAND}
+-)
+-
+-FetchContent_MakeAvailable(abseil_cpp)
+-FetchContent_GetProperties(abseil_cpp SOURCE_DIR)
+-
+-if (GDK_PLATFORM)
+-  # Abseil considers any partition that is NOT in the WINAPI_PARTITION_APP a viable platform
+-  # for Win32 symbolize code (which depends on dbghelp.lib); this logic should really be flipped
+-  # to only include partitions that are known to support it (e.g. DESKTOP). As a workaround we
+-  # tell Abseil to pretend we're building an APP.
+-  target_compile_definitions(absl_symbolize PRIVATE WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP)
+-endif()
++find_package(absl REQUIRED)
+diff --git a/cmake/external/eigen.cmake b/cmake/external/eigen.cmake
+index 264247a..f5908ab 100644
+--- a/cmake/external/eigen.cmake
++++ b/cmake/external/eigen.cmake
+@@ -1,9 +1,8 @@
+ include (ExternalProject)
+ 
+ if (onnxruntime_USE_PREINSTALLED_EIGEN)
+-    add_library(eigen INTERFACE)
+-    file(TO_CMAKE_PATH ${eigen_SOURCE_PATH} eigen_INCLUDE_DIRS)
+-    target_include_directories(eigen INTERFACE ${eigen_INCLUDE_DIRS})
++    find_package(Eigen3 CONFIG REQUIRED)
++    add_library(eigen ALIAS Eigen3::Eigen)
+ else ()
+     if (onnxruntime_USE_ACL)
+         execute_process(COMMAND  git apply --ignore-space-change --ignore-whitespace ${PROJECT_SOURCE_DIR}/patches/eigen/Fix_Eigen_Build_Break.patch WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+diff --git a/cmake/external/onnx b/cmake/external/onnx
+--- a/cmake/external/onnx
++++ b/cmake/external/onnx
+@@ -1 +1 @@
+-Subproject commit f7ee1ac60d06abe8e26c9b6bbe1e3db5286b614b
++Subproject commit f7ee1ac60d06abe8e26c9b6bbe1e3db5286b614b-dirty
+diff --git a/cmake/onnxruntime_common.cmake b/cmake/onnxruntime_common.cmake
+index a8ca9c9..57e828e 100644
+--- a/cmake/onnxruntime_common.cmake
++++ b/cmake/onnxruntime_common.cmake
+@@ -78,7 +78,7 @@ file(GLOB onnxruntime_common_src CONFIGURE_DEPENDS
+ # Remove new/delete intercept. To deal with memory leaks
+ # Use either non-mimalloc build OR use mimalloc built-in features.
+ if(WIN32 AND onnxruntime_USE_MIMALLOC)
+-    list(REMOVE_ITEM onnxruntime_common_src 
++    list(REMOVE_ITEM onnxruntime_common_src
+     "${ONNXRUNTIME_ROOT}/core/platform/windows/debug_alloc.cc"
+     "${ONNXRUNTIME_ROOT}/core/platform/windows/debug_alloc.h")
+ endif()
+@@ -218,7 +218,7 @@ if (ARM64 OR ARM OR X86 OR X64 OR X86_64)
+ 
+     if (CPUINFO_SUPPORTED)
+       target_link_libraries(onnxruntime_common cpuinfo)
+-      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo clog)
++      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo)
+     endif()
+   endif()
+ endif()
+diff --git a/cmake/wil.cmake b/cmake/wil.cmake
+index 36a8bc9..abb2001 100644
+--- a/cmake/wil.cmake
++++ b/cmake/wil.cmake
+@@ -1,5 +1,5 @@
+ # Copyright (c) Microsoft Corporation. All rights reserved.
+ # Licensed under the MIT License.
+ 
+-add_library(wil INTERFACE)
+-target_include_directories(wil INTERFACE external/wil/include/)
+\ No newline at end of file
++find_package(wil CONFIG REQUIRED)
++add_library(wil ALIAS WIL::WIL)
+diff --git a/onnxruntime/core/common/safeint.h b/onnxruntime/core/common/safeint.h
+index 263e936..82bbe83 100644
+--- a/onnxruntime/core/common/safeint.h
++++ b/onnxruntime/core/common/safeint.h
+@@ -32,7 +32,7 @@ class SafeIntExceptionHandler<onnxruntime::OnnxRuntimeException> {
+ #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
+ #endif
+ #endif
+-#include "safeint/SafeInt.hpp"
++#include <SafeInt.hpp>
+ #if defined(__GNUC__)
+ #pragma GCC diagnostic pop
+ #endif

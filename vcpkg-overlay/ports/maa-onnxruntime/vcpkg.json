@@ -1,0 +1,38 @@
+{
+  "name": "maa-onnxruntime",
+  "version": "1.12.1",
+  "description": "onnxruntime",
+  "homepage": "https://github.com/microsoft/onnxruntime",
+  "license": "MIT",
+  "supports": "!uwp",
+  "dependencies": [
+    "boost-config",
+    "boost-mp11",
+    "cpuinfo",
+    "date",
+    "eigen3",
+    "abseil",
+    "flatbuffers",
+    {
+      "name": "flatbuffers",
+      "host": true
+    },
+    "nlohmann-json",
+    {
+      "name": "nsync",
+      "platform": "!windows"
+    },
+    "protobuf",
+    "re2",
+    "safeint",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "wil",
+      "platform": "windows"
+    },
+    "onnx"
+  ]
+}
