@@ -21,6 +21,7 @@ class Task(Generic[P, RetT]):
         try:
             self.result = self.__func__(*args, **kwargs)
             self.completed = True
+            return self.result
         except:
             if not self.ignore_failure:
                 raise
