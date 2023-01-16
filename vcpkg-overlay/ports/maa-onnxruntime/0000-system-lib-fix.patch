@@ -1,8 +1,21 @@
 diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
-index fb4899d..d6b7dbd 100644
+index fb4899d..15ef788 100644
 --- a/cmake/CMakeLists.txt
 +++ b/cmake/CMakeLists.txt
-@@ -854,7 +854,7 @@ get_filename_component(REPO_ROOT "${REPO_ROOT}" ABSOLUTE)
+@@ -744,6 +744,12 @@ endif()
+ if (NOT WIN32)
+   if (onnxruntime_PREFER_SYSTEM_LIB)
+     find_package(nsync)
++    find_package(unofficial-nsync)
++    if(TARGET nsync::nsync_cpp)
++      add_library(nsync_cpp ALIAS nsync::nsync_cpp)
++    elseif(TARGET unofficial::nsync::nsync_cpp)
++      add_library(nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
++    endif()
+   endif()
+   if (TARGET nsync_cpp)  # linking error with nsync_FOUND (why?)
+     message("Use nsync from preinstalled system lib")
+@@ -854,7 +860,7 @@ get_filename_component(REPO_ROOT "${REPO_ROOT}" ABSOLUTE)
  set(ONNXRUNTIME_INCLUDE_DIR ${REPO_ROOT}/include/onnxruntime)
  
  if (onnxruntime_PREFER_SYSTEM_LIB)
@@ -11,7 +24,7 @@ index fb4899d..d6b7dbd 100644
  endif()
  if (date_FOUND)
    message("Use date from preinstalled system lib")
-@@ -864,7 +864,7 @@ else()
+@@ -864,7 +870,7 @@ else()
    add_subdirectory(external/date EXCLUDE_FROM_ALL)
  endif()
  
@@ -20,7 +33,7 @@ index fb4899d..d6b7dbd 100644
  add_library(safeint_interface INTERFACE)
  target_include_directories(safeint_interface INTERFACE ${SAFEINT_INCLUDE_DIR})
  
-@@ -961,6 +961,7 @@ if (CPUINFO_SUPPORTED)
+@@ -961,6 +967,7 @@ if (CPUINFO_SUPPORTED)
  
    if (onnxruntime_PREFER_SYSTEM_LIB)
      find_package(cpuinfo)
@@ -28,7 +41,7 @@ index fb4899d..d6b7dbd 100644
    endif()
    if (cpuinfo_FOUND)
      message("Use cpuinfo from preinstalled system lib")
-@@ -1560,19 +1561,11 @@ else()
+@@ -1560,19 +1567,11 @@ else()
  endif()
  
  if (NOT onnxruntime_MINIMAL_BUILD)
