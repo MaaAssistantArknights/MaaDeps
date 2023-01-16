@@ -134,18 +134,22 @@ index a8ca9c9..57e828e 100644
    endif()
  endif()
 diff --git a/cmake/wil.cmake b/cmake/wil.cmake
-index 36a8bc9..abb2001 100644
+index 36a8bc9..0debdee 100644
 --- a/cmake/wil.cmake
 +++ b/cmake/wil.cmake
-@@ -1,5 +1,5 @@
+@@ -1,5 +1,9 @@
  # Copyright (c) Microsoft Corporation. All rights reserved.
  # Licensed under the MIT License.
  
 -add_library(wil INTERFACE)
 -target_include_directories(wil INTERFACE external/wil/include/)
 \ No newline at end of file
-+find_package(wil CONFIG REQUIRED)
-+add_library(wil ALIAS WIL::WIL)
++if(WIN32)
++  find_package(wil CONFIG REQUIRED)
++  add_library(wil ALIAS WIL::WIL)
++else()
++  add_library(wil INTERFACE)
++endif()
 diff --git a/onnxruntime/core/common/safeint.h b/onnxruntime/core/common/safeint.h
 index 263e936..82bbe83 100644
 --- a/onnxruntime/core/common/safeint.h
