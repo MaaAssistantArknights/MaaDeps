@@ -1,0 +1,148 @@
+name: build
+
+on:
+  push:
+    tags: '*'
+  workflow_dispatch:
+    inputs:
+      use-cache:
+        type: boolean
+        default: true
+        description: Use binary cache
+
+jobs:
+  build-maadeps:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu
+            arch: x64
+          - os: windows
+            arch: x64
+          - os: windows
+            arch: arm64
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+
+      - run: |
+          cd ..
+          mkdir C:\MaaDeps
+          rmdir MaaDeps
+          mklink /j MaaDeps C:\MaaDeps
+        if: runner.os == 'Windows'
+        shell: cmd
+
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf
+        if: runner.os == 'Linux'
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            vcpkg/downloads/
+          key: cache-downloads-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay', 'vcpkg*.json') }}
+      
+      # no symbols if installed from binary archive 
+      # - uses: actions/cache/restore@v3
+      #   if: github.event.inputs.use-cache
+      #   with:
+      #     path: |
+      #       vcpkg/archives/
+      #     key: cache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay') }}
+
+      # # this should work on both bash and pwsh, and giving native path on windows
+      # - run: |
+      #     mkdir -p vcpkg/archives
+      #     echo "VCPKG_DEFAULT_BINARY_CACHE=$PWD/vcpkg/archives" >> $GITHUB_ENV
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.os == 'windows'
+        id: msvc-env
+        with:
+          arch: amd64${{ matrix.arch != 'x64' && format('_{0}', matrix.arch) || '' }}
+
+      - run: |
+          echo "CC=cl" >> $GITHUB_ENV
+          echo "CXX=cl" >> $GITHUB_ENV
+        if: matrix.os == 'windows'
+        shell: bash
+
+      - name: Setup ccache
+        uses: Chocobo1/setup-ccache-action@v1
+        with:
+          windows_compile_environment: msvc
+
+      # vcpkg will clean environment so that ccache is not used anyway
+      # - name: post-setup cache (windows)
+      #   if: runner.os == 'Windows'
+      #   shell: cmd
+      #   run: |
+      #     echo "PATH=%ccache_symlinks_path%;%PATH%" >> %GITHUB_ENV%
+
+      # - name: enable NTFS compression (windows)
+      #   if: runner.os == 'Windows'
+      #   shell: cmd
+      #   run: |
+      #     compact /c /q vcpkg
+
+      - name: set target (windows)
+        run: |
+          echo "TARGET=${{ matrix.arch }}-windows" >> $GITHUB_ENV
+        if: runner.os == 'Windows'
+        shell: bash
+
+      - name: set target (linux)
+        run: |
+          echo "TARGET=${{ matrix.arch }}-linux" >> $GITHUB_ENV
+        if: runner.os == 'Linux'
+
+      - run: |
+          for attempt in 1 2 3
+          do
+            python3 build.py --tarball --target maa-$TARGET -- $MAA_CMAKE_ARGS && break
+            # delete object and archive files (of already installed packages) and retry
+            shopt -s globstar nullglob
+            df -lh
+            rm -f vcpkg/buildtrees/**/*.{o,obj,a,lib}
+            df -lh
+            du -sh vcpkg/buildtrees/*
+            [[ $attempt != 3 ]]  # fail on last attempt
+          done
+        shell: bash
+
+      - name: colelct logs
+        shell: bash
+        if: always() 
+        run: |
+          shopt -s globstar
+          tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log
+
+      - name: upload logs
+        uses: actions/upload-artifact@v1.0.0
+        if: always()
+        with:
+          name: logs-${{ env.TARGET }}
+          path: logs.tar
+
+      - name: artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: tarball-${{ env.TARGET }}
+          path: tarball
+      
+      # - name: cache binary archives
+      #   uses: actions/cache/save@v3
+      #   if: github.event.inputs.use-cache 
+      #   with:
+      #     path: |
+      #       vcpkg/archives/
+      #     key: cache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay') }}
