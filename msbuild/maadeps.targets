@@ -6,10 +6,11 @@
 
 
 
-    <Target Name="CopyMaaDepsRuntimeFilesVC" AfterTargets="AfterBuild" >
+    <Target Name="CopyMaaDepsRuntimeFiles" AfterTargets="Build" >
         <ItemGroup>
             <MaaDepsRuntimeFiles Include="$(MaaDepsRuntime)\**\*.*"/>
         </ItemGroup>
+        <Message Text="Copying runtime files" Importance="High"/>
         <Copy Condition="'$(TargetDir)' != ''"
             SourceFiles="@(MaaDepsRuntimeFiles)"
             DestinationFiles="$(TargetDir)\%(RecursiveDir)%(Filename)%(Extension)"

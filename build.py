@@ -22,6 +22,7 @@ def main():
     session.parse_args(sys.argv)
 
     vcpkg_bootstrap()
+    clean()
     vcpkg_install()
     runtime.sdk_ready()
     runtime.install_runtime()
@@ -30,6 +31,13 @@ def main():
         bin_tarball()
         sdk_tarball()
 
+@task
+def clean():
+    import shutil
+    os.chdir(basedir)
+    shutil.rmtree("runtime", ignore_errors=True)
+    shutil.rmtree("tarball", ignore_errors=True)
+    shutil.rmtree("vcpkg/installed", ignore_errors=True)
 
 @task
 def get_tarball_triplet():
@@ -48,7 +56,7 @@ def bin_tarball():
     if runtimefiles:
         with tarfile.TarFile.open(f"tarball/MaaDeps-{tarball_triplet}-runtime.tar.xz", 'w:xz') as runtimetar:
             for fspath in runtimefiles:
-                runtimetar.add(fspath, arcname=fspath.relative_to(runtime.get_runtime_dir()))
+                runtimetar.add(fspath, arcname=fspath.relative_to(basedir))
     if dbgfiles:
         with tarfile.TarFile.open(f"tarball/MaaDeps-{tarball_triplet}-dbg.tar.xz", 'w:xz') as dbgtar:
             for fspath in dbgfiles:
@@ -62,15 +70,24 @@ def sdk_tarball():
 
     tarball_triplet = get_tarball_triplet()
 
+    extra_files = [
+        *glob.glob("./msbuild/*"),
+        *glob.glob("./vcpkg/scripts/buildsystems/msbuild/*"),
+        "./vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "./maadeps.cmake",
+    ]
+
     if 'windows' in session.target:
-        def bin_filter(info: tarfile.TarInfo):
+        def sdk_filter(info: tarfile.TarInfo):
             if info.name.endswith(".pdb"):
                 return None
             return info
     else:
-        bin_filter = None
-    with tarfile.TarFile.open(f"tarball/MaaDeps-{tarball_triplet}-sdk.tar.xz", 'w:xz') as bintar:
-        bintar.add(f"./vcpkg/installed/{vcpkg.triplet}", filter=bin_filter)
+        sdk_filter = None
+    with tarfile.TarFile.open(f"tarball/MaaDeps-{tarball_triplet}-devel.tar.xz", 'w:xz') as sdktar:
+        sdktar.add(f"./vcpkg/installed/{vcpkg.triplet}", filter=sdk_filter)
+        for f in extra_files:
+            sdktar.add(f)
 
 
 if __name__ == "__main__":
