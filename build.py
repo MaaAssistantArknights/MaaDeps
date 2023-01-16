@@ -36,6 +36,7 @@ def clean():
     import shutil
     os.chdir(basedir)
     shutil.rmtree("runtime", ignore_errors=True)
+    shutil.rmtree("debug", ignore_errors=True)
     shutil.rmtree("tarball", ignore_errors=True)
     shutil.rmtree("vcpkg/installed", ignore_errors=True)
 
