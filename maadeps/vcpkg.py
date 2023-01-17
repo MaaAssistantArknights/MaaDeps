@@ -1,7 +1,10 @@
+import sys
 import os
 from .common import basedir, host_triplet
 import subprocess
 from maadeps.runner import task
+
+_this_module = sys.modules[__name__]
 
 
 root = os.path.join(basedir, "vcpkg")
@@ -38,7 +41,13 @@ def bootstrap(target_triplet=None):
 
 def install(*ports, triplet=None):
     if triplet is None:
-        triplet = globals()["triplet"]
+        triplet = _this_module.triplet
     cmd = [os.path.join(root, "vcpkg"), "install"]
     cmd.extend(port + ":" + triplet for port in ports)
     subprocess.check_call(cmd, cwd=root)
+
+def install_manifest(manifest_root, triplet=None):
+    if triplet is None:
+        triplet = _this_module.triplet
+    cmd = [os.path.join(root, "vcpkg"), "install", "--x-install-root=" + os.path.join(root, "installed"), "--triplet", triplet]
+    subprocess.check_call(cmd, cwd=manifest_root)

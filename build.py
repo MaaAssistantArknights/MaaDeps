@@ -16,7 +16,7 @@ def vcpkg_bootstrap():
 
 @task
 def vcpkg_install():
-    vcpkg.install("opencv4[core,eigen,lapack,jpeg,png,tiff,world]", "opencv[core,eigen,lapack,jpeg,png,tiff,world]", "maa-fastdeploy")
+    vcpkg.install_manifest(basedir)
 
 def main():
     session.parse_args(sys.argv)

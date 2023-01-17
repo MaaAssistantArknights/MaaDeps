@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "maa-meta",
+  "version": "2023-01-17",
+  "description": "meta manifest that tracks dependencies for MAA",
+  "homepage": "https://github.com/MaaAssistantArknights/MaaDeps",
+  "license": null,
+  "dependencies": [
+    {
+      "name": "opencv4",
+      "default-features": false,
+      "features": [
+        "eigen",
+        "lapack",
+        "jpeg",
+        "png",
+        "tiff",
+        "world"
+      ]
+    },
+    "maa-fastdeploy"
+  ]
+}
