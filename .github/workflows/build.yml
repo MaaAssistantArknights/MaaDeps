@@ -29,6 +29,7 @@ jobs:
     steps:
 
       - run: |
+          dir d:\a
           cd ..
           mkdir C:\MaaDeps
           rmdir MaaDeps
@@ -138,7 +139,17 @@ jobs:
         with:
           name: tarball-${{ env.TARGET }}
           path: tarball
-      
+
+      - name: release
+        if: github.ref_name != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          gh release create "$TAG_NAME" --prerelease || true  # accept existing release
+          gh release upload "$TAG_NAME" tarball/*
+
       # - name: cache binary archives
       #   uses: actions/cache/save@v3
       #   if: github.event.inputs.use-cache 
@@ -146,3 +157,4 @@ jobs:
       #     path: |
       #       vcpkg/archives/
       #     key: cache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay') }}
+
