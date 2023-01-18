@@ -7,6 +7,19 @@
   "license": null,
   "dependencies": [
     {
+      "name": "opencv",
+      "default-features": false,
+      "features": [
+        "eigen",
+        "lapack",
+        "jpeg",
+        "png",
+        "tiff",
+        "world"
+      ]
+    },
+    {
+      "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
       "name": "opencv4",
       "default-features": false,
       "features": [
