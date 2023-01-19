@@ -13,8 +13,9 @@ def set_rpath(file, rpath):
 
 def split_debug(file, debug_file):
     temp_debug_file = Path(file).parent / Path(debug_file).name
-    subprocess.check_call(["objcopy", "--only-keep-debug", "--", file, temp_debug_file])
-    subprocess.check_call(["objcopy", "--strip-unneeded", "--add-gnu-debuglink=" + str(temp_debug_file), "--", file])
+    objcopy = os.environ.get("OBJCOPY", "objcopy")
+    subprocess.check_call([objcopy, "--only-keep-debug", "--", file, temp_debug_file])
+    subprocess.check_call([objcopy, "--strip-unneeded", "--add-gnu-debuglink=" + str(temp_debug_file), "--", file])
     shutil.move(temp_debug_file, debug_file)
 
 def is_elf(file):
