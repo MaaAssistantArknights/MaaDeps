@@ -32,9 +32,10 @@ def install_runtime():
 
     if "windows" in vcpkg.triplet:
         from .runtime_windows import install_runtime as impl
-    elif "linux" in vcpkg.triplet:
+    elif "linux" in vcpkg.triplet or 'android' in vcpkg.triplet:
         from .runtime_linux import install_runtime as impl
-    elif "osx" in vcpkg.triplet:
+    # elif "osx" in vcpkg.triplet:
+    else: 
         raise NotImplementedError()
 
     impl(target_dir, debug_dir)
