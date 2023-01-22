@@ -29,6 +29,8 @@
         "world"
       ]
     },
-    "maa-fastdeploy"
+    "maa-fastdeploy",
+    "zlib",
+    "asio"
   ]
 }
