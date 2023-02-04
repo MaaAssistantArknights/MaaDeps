@@ -14,42 +14,54 @@ jobs:
   build-maadeps:
     strategy:
       matrix:
+        os: [ubuntu, windows, macos]
+        arch: [x64, arm64]
         include:
           - os: ubuntu
-            arch: x64
-          - os: windows
-            arch: x64
-          - os: windows
-            arch: arm64
-          - os: macos
-            arch: x64
-          - os: macos
-            arch: arm64
+            arch: arm64-android
+          - os: ubuntu
+            arch: x64-android
       fail-fast: false
     defaults:
       run:
         shell: bash
     runs-on: ${{ matrix.os }}-latest
     steps:
-      - run: |
+      - name: Set Symlink for Windows
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
           dir d:\a
           cd ..
           mkdir C:\MaaDeps
           rmdir MaaDeps
           mklink /j MaaDeps C:\MaaDeps
-        if: runner.os == 'Windows'
-        shell: cmd
 
       - uses: actions/checkout@v3
         with:
           submodules: "recursive"
 
-      - run: |
+      - name: Install Packages on Linux
+        if: runner.os == 'Linux'
+        run: |
           sudo apt-get update -y
           sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf
-        if: runner.os == 'Linux'
 
-      - run: |
+      - name: Install Cross-Compiler for Linux
+        if: runner.os == 'Linux' && matrix.arch == 'arm64'
+        run: |
+          sudo apt install crossbuild-essential-arm64
+
+      - uses: nttld/setup-ndk@v1
+        if: contains(matrix.arch, 'android')
+        id: setup-ndk
+        with:
+          ndk-version: r25b
+          add-to-path: false
+
+      - name: Install Packages on MacOS
+        if: runner.os == 'macOS'
+        run: |
           brew update
           brew install ccache ninja pkg-config
 
@@ -59,7 +71,6 @@ jobs:
 
           brew unlink python
           brew link --overwrite python
-        if: runner.os == 'macOS'
 
       - uses: actions/cache@v3
         with:
@@ -86,11 +97,11 @@ jobs:
         with:
           arch: amd64${{ matrix.arch != 'x64' && format('_{0}', matrix.arch) || '' }}
 
-      - run: |
+      - name: Setup MSVC environment
+        if: matrix.os == 'windows'
+        run: |
           echo "CC=cl" >> $GITHUB_ENV
           echo "CXX=cl" >> $GITHUB_ENV
-        if: matrix.os == 'windows'
-        shell: bash
 
       - name: Setup ccache
         uses: Chocobo1/setup-ccache-action@v1
@@ -110,23 +121,27 @@ jobs:
       #   run: |
       #     compact /c /q vcpkg
 
-      - name: set target (windows)
+      - name: Set target
         run: |
-          echo "TARGET=${{ matrix.arch }}-windows" >> $GITHUB_ENV
-        if: runner.os == 'Windows'
-        shell: bash
+          lower() { printf '%s\n' "${1,,}"; }
 
-      - name: set target (linux)
+          if [[ "${{matrix.arch}}" == *"android"* ]]; then
+            echo "TARGET=${{ matrix.arch }}" >> $GITHUB_ENV
+          else
+            export RUNNER_OS=$(lower ${{runner.os}})
+            export OS=$(echo $RUNNER_OS | sed 's/macOS/osx/I')
+            echo "TARGET=${{ matrix.arch }}-${OS}" >> $GITHUB_ENV
+          fi
+
+      - name: Set OBJCOPY for arm64-linux
+        if: matrix.arch == 'arm64' && matrix.os == 'ubuntu'
         run: |
-          echo "TARGET=${{ matrix.arch }}-linux" >> $GITHUB_ENV
-        if: runner.os == 'Linux'
+          echo "OBJCOPY=aarch64-linux-gnu-objcopy" >> $GITHUB_ENV
 
-      - name: set target (macos)
+      - name: Build MaaDeps
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
-          echo "TARGET=${{ matrix.arch }}-osx" >> $GITHUB_ENV
-        if: runner.os == 'macOS'
-
-      - run: |
           for attempt in 1 2 3
           do
             python3 build.py --tarball --target maa-$TARGET -- $MAA_CMAKE_ARGS && break
@@ -138,23 +153,21 @@ jobs:
             du -sh vcpkg/buildtrees/*
             [[ $attempt != 3 ]]  # fail on last attempt
           done
-        shell: bash
 
-      - name: collect logs
-        shell: bash
-        if: always()
+      - name: Collect Logs
+        if: always() 
         run: |
           shopt -s globstar
           tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log
 
-      - name: upload logs
+      - name: Upload Logs
         uses: actions/upload-artifact@v1.0.0
         if: always()
         with:
           name: logs-${{ env.TARGET }}
           path: logs.tar
 
-      - name: artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: tarball-${{ env.TARGET }}
