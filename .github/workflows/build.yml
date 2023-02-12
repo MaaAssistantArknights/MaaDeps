@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    tags: '*'
+    tags: "*"
   workflow_dispatch:
     inputs:
       use-cache:
@@ -21,13 +21,16 @@ jobs:
             arch: x64
           - os: windows
             arch: arm64
+          - os: macos
+            arch: x64
+          - os: macos
+            arch: arm64
       fail-fast: false
     defaults:
       run:
         shell: bash
     runs-on: ${{ matrix.os }}-latest
     steps:
-
       - run: |
           dir d:\a
           cd ..
@@ -39,20 +42,33 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - run: |
           sudo apt-get update -y
           sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf
         if: runner.os == 'Linux'
 
+      - run: |
+          brew update
+          brew install ccache ninja
+
+          brew install bash gnu-sed gnu-tar
+          echo "$(brew --prefix)/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
+          echo "$(brew --prefix)/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
+
+          brew unlink python
+          brew link --overwrite python
+          pip3 install -U --user macholib
+        if: runner.os == 'macOS'
+
       - uses: actions/cache@v3
         with:
           path: |
             vcpkg/downloads/
           key: cache-downloads-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay', 'vcpkg*.json') }}
-      
-      # no symbols if installed from binary archive 
+
+      # no symbols if installed from binary archive
       # - uses: actions/cache/restore@v3
       #   if: github.event.inputs.use-cache
       #   with:
@@ -106,6 +122,11 @@ jobs:
           echo "TARGET=${{ matrix.arch }}-linux" >> $GITHUB_ENV
         if: runner.os == 'Linux'
 
+      - name: set target (macos)
+        run: |
+          echo "TARGET=${{ matrix.arch }}-osx" >> $GITHUB_ENV
+        if: runner.os == 'macOS'
+
       - run: |
           for attempt in 1 2 3
           do
@@ -120,9 +141,9 @@ jobs:
           done
         shell: bash
 
-      - name: colelct logs
+      - name: collect logs
         shell: bash
-        if: always() 
+        if: always()
         run: |
           shopt -s globstar
           tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log
@@ -152,9 +173,8 @@ jobs:
 
       # - name: cache binary archives
       #   uses: actions/cache/save@v3
-      #   if: github.event.inputs.use-cache 
+      #   if: github.event.inputs.use-cache
       #   with:
       #     path: |
       #       vcpkg/archives/
       #     key: cache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay') }}
-
