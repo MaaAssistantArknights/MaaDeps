@@ -15,20 +15,22 @@ def split_debug(file, debug_file):
 
 
 def is_macho(file):
-    from macholib.MachO import MachO
-    try:
-        MachO(file)
+    result = subprocess.run(["file", file], capture_output=True)
+    text = result.stdout.decode()
+    if text.startswith(f"{file}: Mach-O"):
         return True
-    except Exception:
-        return False
+    return False
 
 
 def get_soname(file):
-    from macholib.dylib import dylib_info
-    try:
-        return dylib_info(file).get('name', None)
-    except Exception:
-        return None
+    result = subprocess.run(["otool", "-l", file], capture_output=True)
+    cmds = result.stdout.decode().splitlines()
+    for i, cmd in enumerate(cmds):
+        if cmd.endswith("LC_ID_DYLIB"):
+            name_line = cmds[i + 2]
+            name_path = Path(name_line.split()[1])
+            return name_path.name
+    return None
 
 
 def install_runtime(target, debug):
