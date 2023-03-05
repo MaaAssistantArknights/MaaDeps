@@ -34,8 +34,8 @@ if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/vcpkg/installed/${MAADEPS_TRIPLET}")
   message(FATAL_ERROR
     " "
     " Dependencies not found for ${MAADEPS_TRIPLET}\n"
-    " run MaaDeps/download.py to download prebuilt binaries\n"
-    " or MaaDeps/build.py to build from source\n"
+    " run maadeps-download.py to download prebuilt binaries\n"
+    " or maadeps-build.py to build from source\n"
   )
 endif()
 list(PREPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/vcpkg/installed/${MAADEPS_TRIPLET}")
