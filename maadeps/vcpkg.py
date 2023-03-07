@@ -28,7 +28,7 @@ def bootstrap(target_triplet=None):
     os.environ["VCPKG_OVERLAY_PORTS"] = os.path.join(basedir, "vcpkg-overlay", "ports")
 
     if not os.path.exists(os.path.join(root, "bootstrap_vcpkg.bat")):
-        subprocess.check_call(["git", "submodule", "update", "--init", "vcpkg"], cwd=basedir)
+        subprocess.check_call(["git", "submodule", "update", "--init", "--recommend-shallow", "vcpkg"], cwd=basedir)
 
     if os.name == "nt":
         script_name = "bootstrap-vcpkg.bat"
