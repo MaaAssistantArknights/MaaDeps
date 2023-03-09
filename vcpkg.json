@@ -31,6 +31,10 @@
     },
     "maa-fastdeploy",
     "zlib",
-    "asio"
+    "asio",
+    {
+      "name": "range-v3",
+      "platform": "osx | android"
+    }
   ]
 }
