@@ -13,7 +13,7 @@ def parse_args(argv):
     parser.add_argument("--target", default=None)
     parser.add_argument("--skip-src-update", action="store_true", default=False)
     parser.add_argument("--tarball", action="store_true", default=False)
-    parser.add_argument("extra_cmake_args", nargs=argparse.REMAINDER)
+    parser.add_argument("extra_cmake_args", nargs=argparse.ZERO_OR_MORE)  # '-- -DCMAKE_XXX ...'
 
     config = parser.parse_args(argv[1:])
 
