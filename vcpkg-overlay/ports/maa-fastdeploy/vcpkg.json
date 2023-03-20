@@ -4,7 +4,6 @@
     "port-version": 1,
     "description": "derp learning routines",
     "homepage": "https://github.com/MaaAssistantArknights/FastDeploy",
-    "builtin-baseline": "315466ac1a4082f3c375aacab10784c25104f28f",
     "license": "Apache-2.0",
     "supports": "!uwp",
     "dependencies": [
