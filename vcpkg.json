@@ -1,40 +1,42 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "maa-meta",
-  "version": "2023-01-17",
-  "description": "meta manifest that tracks dependencies for MAA",
-  "homepage": "https://github.com/MaaAssistantArknights/MaaDeps",
-  "license": null,
-  "dependencies": [
-    {
-      "name": "opencv",
-      "default-features": false,
-      "features": [
-        "eigen",
-        "jpeg",
-        "png",
-        "tiff",
-        "world"
-      ]
-    },
-    {
-      "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
-      "name": "opencv4",
-      "default-features": false,
-      "features": [
-        "eigen",
-        "jpeg",
-        "png",
-        "tiff",
-        "world"
-      ]
-    },
-    "maa-fastdeploy",
-    "zlib",
-    "asio",
-    {
-      "name": "range-v3",
-      "platform": "osx | android"
-    }
-  ]
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "maa-meta",
+    "version": "2023-01-17",
+    "description": "meta manifest that tracks dependencies for MAA",
+    "homepage": "https://github.com/MaaAssistantArknights/MaaDeps",
+    "license": null,
+    "dependencies": [
+        {
+            "name": "opencv",
+            "default-features": false,
+            "features": [
+                "eigen",
+                "jpeg",
+                "png",
+                "tiff",
+                "ffmpeg",
+                "world"
+            ]
+        },
+        {
+            "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
+            "name": "opencv4",
+            "default-features": false,
+            "features": [
+                "eigen",
+                "jpeg",
+                "png",
+                "tiff",
+                "ffmpeg",
+                "world"
+            ]
+        },
+        "maa-fastdeploy",
+        "zlib",
+        "asio",
+        {
+            "name": "range-v3",
+            "platform": "osx | android"
+        }
+    ]
 }
