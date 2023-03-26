@@ -35,6 +35,7 @@
     {
       "name": "range-v3",
       "platform": "osx | android"
-    }
+    },
+    "cpr"
   ]
 }
