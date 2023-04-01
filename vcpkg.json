@@ -14,7 +14,6 @@
         "jpeg",
         "png",
         "tiff",
-        "ffmpeg",
         "world"
       ]
     },
@@ -27,7 +26,6 @@
         "jpeg",
         "png",
         "tiff",
-        "ffmpeg",
         "world"
       ]
     },
