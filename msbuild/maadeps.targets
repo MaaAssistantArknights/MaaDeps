@@ -8,7 +8,7 @@
 
     <Target Name="CopyMaaDepsRuntimeFiles" AfterTargets="Build" >
         <ItemGroup>
-            <MaaDepsRuntimeFiles Include="$(MaaDepsRuntime)\**\*.*"/>
+            <MaaDepsRuntimeFiles Include="$(MaaDepsRuntime)\**\*.*" Exclude="$(MaaDepsRuntime)\msvc-debug\**\*.*"/>
         </ItemGroup>
         <Message Text="Copying runtime files" Importance="High"/>
         <Copy Condition="'$(TargetDir)' != ''"

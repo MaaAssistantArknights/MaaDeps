@@ -3,14 +3,22 @@
     <MaaDepsTriplet Condition="'$(Platform)'=='x64'">maa-x64-windows</MaaDepsTriplet>
     <MaaDepsTriplet Condition="'$(Platform)'=='ARM64'">maa-arm64-windows</MaaDepsTriplet>
     <MaaDepsPrefix>$(MSBuildThisFileDirectory)..\vcpkg\installed\$(MaaDepsTriplet)</MaaDepsPrefix>
+    <MaaDepsIncludeDir>$(MaaDepsPrefix)\include</MaaDepsIncludeDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <MaaDepsLibDir>$(MaaDepsPrefix)\lib</MaaDepsLibDir>
     <MaaDepsRuntime>$(MSBuildThisFileDirectory)..\runtime\$(MaaDepsTriplet)</MaaDepsRuntime>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <MaaDepsLibDir>$(MaaDepsPrefix)\debug\lib</MaaDepsLibDir>
+    <MaaDepsRuntime>$(MSBuildThisFileDirectory)..\runtime\$(MaaDepsTriplet)\msvc-debug</MaaDepsRuntime>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MaaDepsPrefix)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MaaDepsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(MaaDepsPrefix)\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MaaDepsLibDir)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
 </Project>

@@ -17,10 +17,20 @@ exclude = [
 def install_runtime(target_dir, debug_dir):
     from . import vcpkg
     prefix = Path(vcpkg.install_prefix)
+    target_dir = Path(target_dir)
+    debug_dir = Path(debug_dir)
+    install_runtime_prefix(prefix, target_dir, debug_dir)
+    install_runtime_prefix(prefix / 'debug', target_dir / 'msvc-debug', (debug_dir / 'msvc-debug'))
+
+def install_runtime_prefix(prefix, target_dir, debug_dir):
+    from . import vcpkg
+    prefix = Path(prefix)
     target = Path(target_dir)
+    target.mkdir(parents=True, exist_ok=True)
+    Path(debug_dir).mkdir(parents=True, exist_ok=True)
     from .runtime import install_file, match_patterns
     for file in prefix.glob("bin/**/*"):
-        if (match_patterns(file, exclude)):
+        if match_patterns(file, exclude):
             continue
         if file.is_file():
             target_path = target / file.relative_to(prefix / "bin")
