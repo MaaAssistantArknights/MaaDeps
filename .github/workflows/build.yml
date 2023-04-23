@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 720
     steps:
-      - name: Set Symlink for Windows
+      - name: Windows runner hack
         if: runner.os == 'Windows'
         shell: cmd
         run: |
@@ -37,7 +37,10 @@ jobs:
           mkdir C:\MaaDeps
           rmdir MaaDeps
           mklink /j MaaDeps C:\MaaDeps
-
+          wmic computersystem set AutomaticManagedPagefile=false
+          wmic pagefileset where name="D:\\pagefile.sys" set InitialSize=8192,MaximumSize=14000
+          dism /Online /Disable-Feature /FeatureName:Windows-Defender /Remove /NoRestart /Quiet
+          cd .
       - uses: actions/checkout@v3
         with:
           submodules: "recursive"
