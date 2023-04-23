@@ -26,6 +26,7 @@ jobs:
       run:
         shell: bash
     runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 720
     steps:
       - name: Set Symlink for Windows
         if: runner.os == 'Windows'
