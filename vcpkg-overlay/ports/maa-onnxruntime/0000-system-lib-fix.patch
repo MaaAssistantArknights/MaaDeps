@@ -1,72 +1,20 @@
 diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
-index fb4899d..15ef788 100644
+index a5d28fb5..cba7064a 100644
 --- a/cmake/CMakeLists.txt
 +++ b/cmake/CMakeLists.txt
-@@ -744,6 +744,12 @@ endif()
- if (NOT WIN32)
-   if (onnxruntime_PREFER_SYSTEM_LIB)
-     find_package(nsync)
-+    find_package(unofficial-nsync)
-+    if(TARGET nsync::nsync_cpp)
-+      add_library(nsync_cpp ALIAS nsync::nsync_cpp)
-+    elseif(TARGET unofficial::nsync::nsync_cpp)
-+      add_library(nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
-+    endif()
-   endif()
-   if (TARGET nsync_cpp)  # linking error with nsync_FOUND (why?)
-     message("Use nsync from preinstalled system lib")
-@@ -854,7 +860,7 @@ get_filename_component(REPO_ROOT "${REPO_ROOT}" ABSOLUTE)
- set(ONNXRUNTIME_INCLUDE_DIR ${REPO_ROOT}/include/onnxruntime)
- 
- if (onnxruntime_PREFER_SYSTEM_LIB)
--  find_package(date)
-+  find_package(date CONFIG)
- endif()
- if (date_FOUND)
-   message("Use date from preinstalled system lib")
-@@ -864,7 +870,7 @@ else()
-   add_subdirectory(external/date EXCLUDE_FROM_ALL)
- endif()
- 
--set(SAFEINT_INCLUDE_DIR ${REPO_ROOT}/cmake/external/SafeInt)
-+find_path(SAFEINT_INCLUDE_DIR NAMES "SafeInt.hpp" PATHS_SUFFIXES include)
- add_library(safeint_interface INTERFACE)
- target_include_directories(safeint_interface INTERFACE ${SAFEINT_INCLUDE_DIR})
- 
-@@ -961,6 +967,7 @@ if (CPUINFO_SUPPORTED)
- 
-   if (onnxruntime_PREFER_SYSTEM_LIB)
-     find_package(cpuinfo)
-+    add_library(cpuinfo ALIAS cpuinfo::cpuinfo)
-   endif()
-   if (cpuinfo_FOUND)
-     message("Use cpuinfo from preinstalled system lib")
-@@ -1560,19 +1567,11 @@ else()
- endif()
- 
- if (NOT onnxruntime_MINIMAL_BUILD)
--  add_subdirectory(external/onnx EXCLUDE_FROM_ALL)
-+  find_package(ONNX REQUIRED)
- else()
-   include(onnx_minimal)
- endif()
- 
--target_compile_definitions(onnx PUBLIC $<TARGET_PROPERTY:onnx_proto,INTERFACE_COMPILE_DEFINITIONS> PRIVATE "__ONNX_DISABLE_STATIC_REGISTRATION")
--if (NOT onnxruntime_USE_FULL_PROTOBUF)
--  target_compile_definitions(onnx PUBLIC "__ONNX_NO_DOC_STRINGS")
--endif()
--set_target_properties(onnx PROPERTIES FOLDER "External/ONNX")
--set_target_properties(onnx_proto PROPERTIES FOLDER "External/ONNX")
--
--
- # fix a warning in onnx code we can't do anything about
- if (MSVC)
-    string(APPEND CMAKE_CXX_FLAGS " -DEIGEN_HAS_C99_MATH") # required to be set explicitly to enable Eigen-Unsupported SpecialFunctions
+@@ -837,7 +837,6 @@ function(onnxruntime_set_compile_flags target_name)
+         target_compile_options(${target_name} PRIVATE "-Wno-unused-parameter")
+       endif()
+       target_compile_definitions(${target_name} PUBLIC -DNSYNC_ATOMIC_CPP11)
+-      target_include_directories(${target_name} PRIVATE "${google_nsync_SOURCE_DIR}/public")
+     endif()
+     foreach(ORT_FLAG ${ORT_PROVIDER_FLAGS})
+       target_compile_definitions(${target_name} PRIVATE ${ORT_FLAG})
 diff --git a/cmake/external/abseil-cpp.cmake b/cmake/external/abseil-cpp.cmake
-index 816f0ab..6c81d4c 100644
+index 54d2f9c5..1ba1048a 100644
 --- a/cmake/external/abseil-cpp.cmake
 +++ b/cmake/external/abseil-cpp.cmake
-@@ -1,34 +1,4 @@
+@@ -1,44 +1,10 @@
  # Copyright (c) Microsoft Corporation. All rights reserved.
  # Licensed under the MIT License.
  
@@ -76,23 +24,27 @@ index 816f0ab..6c81d4c 100644
 -set(ABSL_PROPAGATE_CXX_STD 1)
 -set(BUILD_TESTING 0)
 -
--if(Patch_FOUND)
--  set(ABSL_PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/abseil/Fix_Nvidia_Build_Break.patch)
+-if(Patch_FOUND AND WIN32)
+-  set(ABSL_PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/abseil/absl_windows.patch)
 -else()
--  set(ABSL_PATCH_COMMAND git apply --ignore-space-change --ignore-whitespace ${PROJECT_SOURCE_DIR}/patches/abseil/Fix_Nvidia_Build_Break.patch)
+-  set(ABSL_PATCH_COMMAND "")
 -endif()
 -
+-# NB! Advancing Abseil version changes its internal namespace,
+-# currently absl::lts_20211102 which affects abseil-cpp.natvis debugger
+-# visualization file, that must be adjusted accordingly, unless we eliminate
+-# that namespace at build time.
 -FetchContent_Declare(
 -    abseil_cpp
--    PREFIX "${CMAKE_CURRENT_BINARY_DIR}/abseil-cpp"
--    BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/external/abseil-cpp"
--    URL https://github.com/abseil/abseil-cpp/archive/refs/tags/20211102.0.zip
--    URL_HASH SHA1=ce61532df974d00025b1220408ce1c900d81baf2
+-    URL ${DEP_URL_abseil_cpp}
+-    URL_HASH SHA1=${DEP_SHA1_abseil_cpp}
 -    PATCH_COMMAND ${ABSL_PATCH_COMMAND}
 -)
 -
--FetchContent_MakeAvailable(abseil_cpp)
--FetchContent_GetProperties(abseil_cpp SOURCE_DIR)
+-onnxruntime_fetchcontent_makeavailable(abseil_cpp)
+-FetchContent_GetProperties(abseil_cpp)
+-set(ABSEIL_SOURCE_DIR ${abseil_cpp_SOURCE_DIR})
+-message(STATUS "Abseil source dir:" ${ABSEIL_SOURCE_DIR})
 -
 -if (GDK_PLATFORM)
 -  # Abseil considers any partition that is NOT in the WINAPI_PARTITION_APP a viable platform
@@ -102,12 +54,19 @@ index 816f0ab..6c81d4c 100644
 -  target_compile_definitions(absl_symbolize PRIVATE WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP)
 -endif()
 +find_package(absl REQUIRED)
+ 
+ if(NOT onnxruntime_DISABLE_ABSEIL)
+   set(ABSEIL_LIBS absl::inlined_vector absl::flat_hash_set
+     absl::flat_hash_map absl::node_hash_set absl::node_hash_map absl::base absl::throw_delegate absl::raw_hash_set
+     absl::hash absl::city absl::low_level_hash absl::raw_logging_internal)
+-endif()
+\ No newline at end of file
++endif()
 diff --git a/cmake/external/eigen.cmake b/cmake/external/eigen.cmake
-index 264247a..f5908ab 100644
+index 266dd534..8a1f6a43 100644
 --- a/cmake/external/eigen.cmake
 +++ b/cmake/external/eigen.cmake
-@@ -1,9 +1,8 @@
- include (ExternalProject)
+@@ -1,8 +1,7 @@
  
  if (onnxruntime_USE_PREINSTALLED_EIGEN)
 -    add_library(eigen INTERFACE)
@@ -117,62 +76,99 @@ index 264247a..f5908ab 100644
 +    add_library(eigen ALIAS Eigen3::Eigen)
  else ()
      if (onnxruntime_USE_ACL)
-         execute_process(COMMAND  git apply --ignore-space-change --ignore-whitespace ${PROJECT_SOURCE_DIR}/patches/eigen/Fix_Eigen_Build_Break.patch WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-diff --git a/cmake/external/onnx b/cmake/external/onnx
---- a/cmake/external/onnx
-+++ b/cmake/external/onnx
-@@ -1 +1 @@
--Subproject commit f7ee1ac60d06abe8e26c9b6bbe1e3db5286b614b
-+Subproject commit f7ee1ac60d06abe8e26c9b6bbe1e3db5286b614b-dirty
+         FetchContent_Declare(
+diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
+index 0c419457..e3b3302b 100644
+--- a/cmake/external/onnxruntime_external_deps.cmake
++++ b/cmake/external/onnxruntime_external_deps.cmake
+@@ -139,13 +139,14 @@ FetchContent_Declare(
+     )
+ onnxruntime_fetchcontent_makeavailable(date)
+ 
++if(NOT TARGET date_interface)
++  # headers installed by vcpkg
++  add_library(date_interface INTERFACE)
++endif()
+ 
+-
+-FetchContent_Declare(
+-  mp11
+-  URL ${DEP_URL_mp11}
+-  URL_HASH SHA1=${DEP_SHA1_mp11}
+-)
++# mp11 is a header-only library installed without CMake support.
++add_library(mp11 INTERFACE)
++add_library(Boost::mp11 ALIAS mp11)
+ 
+ set(JSON_BuildTests OFF CACHE INTERNAL "")
+ set(JSON_Install OFF CACHE INTERNAL "")
+@@ -234,10 +235,13 @@ if (onnxruntime_BUILD_BENCHMARKS)
+ endif()
+ 
+ if (NOT WIN32)
+-  #nsync tests failed on Mac Build
+-  set(NSYNC_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+-  onnxruntime_fetchcontent_makeavailable(google_nsync)
+-  set(nsync_SOURCE_DIR ${google_nsync_SOURCE_DIR})
++  # vcpkg-specific
++  find_package(unofficial-nsync)
++  if(TARGET nsync::nsync_cpp)
++    add_library(nsync_cpp ALIAS nsync::nsync_cpp)
++  elseif(TARGET unofficial::nsync::nsync_cpp)
++    add_library(nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
++  endif()
+ endif()
+ 
+ if(onnxruntime_USE_CUDA)
+@@ -263,7 +267,7 @@ FetchContent_Declare(
+ )
+ 
+ # The next line will generate an error message "fatal: not a git repository", but it is ok. It is from flatbuffers
+-onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json mp11 re2 safeint GSL flatbuffers)
++onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json re2 safeint GSL flatbuffers)
+ if(NOT flatbuffers_FOUND)
+   if(NOT TARGET flatbuffers::flatbuffers)
+     add_library(flatbuffers::flatbuffers ALIAS flatbuffers)
+@@ -361,6 +365,9 @@ FetchContent_Declare(
+ 
+ if (CPUINFO_SUPPORTED)
+   onnxruntime_fetchcontent_makeavailable(pytorch_cpuinfo)
++  if(TARGET cpuinfo::cpuinfo)
++    add_library(cpuinfo ALIAS cpuinfo::cpuinfo)
++  endif()
+ endif()
+ 
+ 
+@@ -369,7 +376,7 @@ include(eigen)
+ include(wil)
+ 
+ if (NOT onnxruntime_MINIMAL_BUILD)
+-    onnxruntime_fetchcontent_makeavailable(onnx)
++  find_package(ONNX REQUIRED)
+ else()
+   include(onnx_minimal)
+ endif()
+@@ -407,10 +414,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} WIL
+ # The other libs do not have the problem. All the sources are already there. We can compile them in any order.
+ set(onnxruntime_EXTERNAL_DEPENDENCIES onnx_proto flatbuffers::flatbuffers)
+ 
+-target_compile_definitions(onnx PUBLIC $<TARGET_PROPERTY:onnx_proto,INTERFACE_COMPILE_DEFINITIONS> PRIVATE "__ONNX_DISABLE_STATIC_REGISTRATION")
+-if (NOT onnxruntime_USE_FULL_PROTOBUF)
+-  target_compile_definitions(onnx PUBLIC "__ONNX_NO_DOC_STRINGS")
+-endif()
+ 
+ if (onnxruntime_RUN_ONNX_TESTS)
+   add_definitions(-DORT_RUN_EXTERNAL_ONNX_TESTS)
 diff --git a/cmake/onnxruntime_common.cmake b/cmake/onnxruntime_common.cmake
-index a8ca9c9..57e828e 100644
+index 0e02ad9d..f7f7cf9b 100644
 --- a/cmake/onnxruntime_common.cmake
 +++ b/cmake/onnxruntime_common.cmake
-@@ -78,7 +78,7 @@ file(GLOB onnxruntime_common_src CONFIGURE_DEPENDS
- # Remove new/delete intercept. To deal with memory leaks
- # Use either non-mimalloc build OR use mimalloc built-in features.
- if(WIN32 AND onnxruntime_USE_MIMALLOC)
--    list(REMOVE_ITEM onnxruntime_common_src 
-+    list(REMOVE_ITEM onnxruntime_common_src
-     "${ONNXRUNTIME_ROOT}/core/platform/windows/debug_alloc.cc"
-     "${ONNXRUNTIME_ROOT}/core/platform/windows/debug_alloc.h")
- endif()
-@@ -218,7 +218,7 @@ if (ARM64 OR ARM OR X86 OR X64 OR X86_64)
- 
+@@ -195,7 +195,7 @@ if (ARM64 OR ARM OR X86 OR X64 OR X86_64)
+     # Its functionality in detecting x86 cpu features are lacking, so is support for Windows.
      if (CPUINFO_SUPPORTED)
-       target_link_libraries(onnxruntime_common cpuinfo)
+       onnxruntime_add_include_to_target(onnxruntime_common cpuinfo)
 -      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo clog)
-+      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo)
++      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo::cpuinfo cpuinfo::clog)
      endif()
    endif()
  endif()
-diff --git a/cmake/wil.cmake b/cmake/wil.cmake
-index 36a8bc9..0debdee 100644
---- a/cmake/wil.cmake
-+++ b/cmake/wil.cmake
-@@ -1,5 +1,9 @@
- # Copyright (c) Microsoft Corporation. All rights reserved.
- # Licensed under the MIT License.
- 
--add_library(wil INTERFACE)
--target_include_directories(wil INTERFACE external/wil/include/)
-\ No newline at end of file
-+if(WIN32)
-+  find_package(wil CONFIG REQUIRED)
-+  add_library(wil ALIAS WIL::WIL)
-+else()
-+  add_library(wil INTERFACE)
-+endif()
-diff --git a/onnxruntime/core/common/safeint.h b/onnxruntime/core/common/safeint.h
-index 263e936..82bbe83 100644
---- a/onnxruntime/core/common/safeint.h
-+++ b/onnxruntime/core/common/safeint.h
-@@ -32,7 +32,7 @@ class SafeIntExceptionHandler<onnxruntime::OnnxRuntimeException> {
- #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
- #endif
- #endif
--#include "safeint/SafeInt.hpp"
-+#include <SafeInt.hpp>
- #if defined(__GNUC__)
- #pragma GCC diagnostic pop
- #endif
