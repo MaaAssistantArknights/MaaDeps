@@ -42,7 +42,7 @@ jobs:
 
       - name: Windows runner hack (2)
         if: runner.os == 'Windows'
-        uses: al-cheb/configure-pagefile-action@v1.2
+        uses: al-cheb/configure-pagefile-action@v1.3
         with:
           minimum-size: 16GB
           maximum-size: 16GB
