@@ -37,10 +37,17 @@ jobs:
           mkdir C:\MaaDeps
           rmdir MaaDeps
           mklink /j MaaDeps C:\MaaDeps
-          wmic computersystem set AutomaticManagedPagefile=false
-          wmic pagefileset where name="D:\\pagefile.sys" set InitialSize=8192,MaximumSize=14000
           dism /Online /Disable-Feature /FeatureName:Windows-Defender /Remove /NoRestart /Quiet
           cd .
+
+      - name: Windows runner hack (2)
+        if: runner.os == 'Windows'
+        uses: al-cheb/configure-pagefile-action@v1.2
+        with:
+          minimum-size: 16GB
+          maximum-size: 16GB
+          disk-root: "D:"
+
       - uses: actions/checkout@v3
         with:
           submodules: "recursive"
