@@ -27,12 +27,12 @@ vcpkg_cmake_configure(
     "-DFETCHCONTENT_FULLY_DISCONNECTED=ON"
     "-Donnxruntime_BUILD_SHARED_LIB=ON"
     "-Donnxruntime_BUILD_UNIT_TESTS=OFF"
-    "-Donnxruntime_ENABLE_LTO=ON"
-    "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON"
     "-DProtobuf_USE_STATIC_LIBS=ON"
     "-Donnxruntime_USE_PREINSTALLED_EIGEN=ON"
     "-DFLATBUFFERS_BUILD_FLATC=OFF"
     "-DCMAKE_INSTALL_INCLUDEDIR=include"
+    OPTIONS_RELEASE
+    "-Donnxruntime_ENABLE_LTO=ON"
 )
 vcpkg_cmake_install()
 vcpkg_copy_pdbs()
