@@ -37,6 +37,7 @@
       "platform": "osx | android"
     },
     "cpr",
-    "ms-gsl"
+    "ms-gsl",
+    "thrift"
   ]
 }
