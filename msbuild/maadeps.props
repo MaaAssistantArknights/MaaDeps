@@ -15,7 +15,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MaaDepsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MaaDepsIncludeDir);$(MaaDepsIncludeDir)\onnxruntime\core\session;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(MaaDepsLibDir)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
