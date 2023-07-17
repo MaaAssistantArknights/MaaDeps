@@ -1,0 +1,21 @@
+diff --git a/onnxruntime/core/providers/cpu/nn/string_normalizer.cc b/onnxruntime/core/providers/cpu/nn/string_normalizer.cc
+index a5d28fb5..cba7064a 100644
+--- a/onnxruntime/core/providers/cpu/nn/string_normalizer.cc
++++ b/onnxruntime/core/providers/cpu/nn/string_normalizer.cc
+@@ -10,6 +10,8 @@
+ #include <locale.h>
+ #elif defined(__APPLE__) || defined(__ANDROID__)
+ #include <codecvt>
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+ #else
+ #include <limits>
+ #include <iconv.h>
+@@ -389,3 +392,7 @@
+   return status;
+ }
+ }  // namespace onnxruntime
++
++#if defined(__APPLE__) || defined(__ANDROID__)
++#pragma clang diagnostic pop
++#endif
