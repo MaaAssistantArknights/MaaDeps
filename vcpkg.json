@@ -38,6 +38,7 @@
     },
     "cpr",
     "ms-gsl",
+    "libevent",
     "thrift"
   ]
 }
