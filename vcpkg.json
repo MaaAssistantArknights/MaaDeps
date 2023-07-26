@@ -26,6 +26,6 @@
     "cpr",
     "ms-gsl",
     "thrift",
-    "boost"
+    "boost-core"
   ]
 }
