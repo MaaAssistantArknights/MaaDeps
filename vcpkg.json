@@ -19,13 +19,13 @@
     },
     "maa-fastdeploy",
     "zlib",
-    "asio",
     {
       "name": "range-v3",
       "platform": "osx | android"
     },
     "cpr",
     "ms-gsl",
-    "thrift"
+    "thrift",
+    "boost"
   ]
 }
