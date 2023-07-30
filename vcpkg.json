@@ -28,6 +28,7 @@
     "thrift",
     "boost-core",
     "boost-asio",
+    "boost-beast",
     "boost-process"
   ]
 }
