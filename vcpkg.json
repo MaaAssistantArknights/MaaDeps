@@ -29,6 +29,7 @@
     "boost-core",
     "boost-asio",
     "boost-beast",
-    "boost-process"
+    "boost-process",
+    "boost-url"
   ]
 }
