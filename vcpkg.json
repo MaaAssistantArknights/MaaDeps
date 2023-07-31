@@ -26,10 +26,12 @@
     "cpr",
     "ms-gsl",
     "thrift",
-    "boost-core",
     "boost-asio",
     "boost-beast",
+    "boost-core",
+    "boost-dll",
     "boost-process",
-    "boost-url"
+    "boost-url",
+    "boost-uuid"
   ]
 }
