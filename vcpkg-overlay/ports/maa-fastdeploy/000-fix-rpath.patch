@@ -1,0 +1,17 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0745cde0..802da0e5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -139,6 +139,12 @@ if(ANDROID)
+   target_link_libraries(MaaDerpLearning PRIVATE log)
+ endif()
+ 
++if (APPLE)
++    set_target_properties(MaaDerpLearning PROPERTIES INSTALL_RPATH "@loader_path")
++elseif (UNIX)
++    set_target_properties(MaaDerpLearning PROPERTIES INSTALL_RPATH "$ORIGIN")
++endif (APPLE)
++
+ install(TARGETS MaaDerpLearning EXPORT MaaDerpLearningConfig)
+ install(EXPORT MaaDerpLearningConfig DESTINATION share/MaaDerpLearning)
+ install(

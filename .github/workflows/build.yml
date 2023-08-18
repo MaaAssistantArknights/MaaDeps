@@ -74,7 +74,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install ccache ninja pkg-config nasm
+          brew install ccache ninja pkg-config nasm bison
 
           brew install bash gnu-sed gnu-tar
           echo "$(brew --prefix)/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
