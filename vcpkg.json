@@ -9,25 +9,13 @@
     {
       "name": "opencv",
       "default-features": false,
-      "features": [
-        "eigen",
-        "jpeg",
-        "png",
-        "tiff",
-        "world"
-      ]
+      "features": ["eigen", "jpeg", "png", "tiff", "world"]
     },
     {
       "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
       "name": "opencv4",
       "default-features": false,
-      "features": [
-        "eigen",
-        "jpeg",
-        "png",
-        "tiff",
-        "world"
-      ]
+      "features": ["eigen", "jpeg", "png", "tiff", "world"]
     },
     "maa-fastdeploy",
     "zlib",
@@ -37,6 +25,7 @@
       "platform": "osx | android"
     },
     "cpr",
-    "ms-gsl"
+    "ms-gsl",
+    "thrift"
   ]
 }
