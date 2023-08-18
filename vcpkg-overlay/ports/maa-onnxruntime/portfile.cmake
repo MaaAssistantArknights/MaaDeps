@@ -11,6 +11,7 @@ vcpkg_from_github(
     SHA512 d8f7ea161e850a738b9a22187662218871f88ad711282c58631196a74f4a4567184047bab0001b973f841a3b63c7dc7e350f92306cc5fa9a7adc4db2ce09766f
     PATCHES
         0000-system-lib-fix.patch
+        0001-pkgconfig-prefix.patch
 )
 
 vcpkg_find_acquire_program(PYTHON3)
