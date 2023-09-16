@@ -12,7 +12,6 @@ vcpkg_from_github(
     PATCHES
         0000-system-lib-fix.patch
         0001-suppress-depracation-warnings.patch
-        0002-pkgconfig-prefix.patch
 )
 
 vcpkg_find_acquire_program(PYTHON3)
