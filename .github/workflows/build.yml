@@ -16,11 +16,11 @@ jobs:
       matrix:
         os: [ubuntu, windows, macos]
         arch: [x64, arm64]
-        include:
-          - os: ubuntu
-            arch: arm64-android
-          - os: ubuntu
-            arch: x64-android
+        #include:
+        #  - os: ubuntu
+        #    arch: arm64-android
+        #  - os: ubuntu
+        #    arch: x64-android
       fail-fast: false
     defaults:
       run:
