@@ -88,27 +88,6 @@ index 0c419457..e3b3302b 100644
  
  set(JSON_BuildTests OFF CACHE INTERNAL "")
  set(JSON_Install OFF CACHE INTERNAL "")
-@@ -271,13 +271,13 @@ if (onnxruntime_BUILD_BENCHMARKS)
- endif()
- 
- if (NOT WIN32)
--  #nsync tests failed on Mac Build
--  set(NSYNC_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
--  onnxruntime_fetchcontent_makeavailable(google_nsync)
--  if (google_nsync_SOURCE_DIR)
--    add_library(nsync::nsync_cpp ALIAS nsync_cpp)
--    target_include_directories(nsync_cpp PUBLIC ${google_nsync_SOURCE_DIR}/public)
--  endif()
-+  # vcpkg-specific
-+  find_package(unofficial-nsync)
-+  if(TARGET nsync::nsync_cpp)
-+    add_library(nsync_cpp ALIAS nsync::nsync_cpp)
-+  elseif(TARGET unofficial::nsync::nsync_cpp)
-+    add_library(nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
-+  endif()
- endif()
- 
- if(onnxruntime_USE_CUDA)
 @@ -263,7 +267,7 @@ FetchContent_Declare(
  )
  
