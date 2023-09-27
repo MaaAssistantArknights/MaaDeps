@@ -7,12 +7,13 @@ endif()
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO microsoft/onnxruntime
-    REF v1.14.1
-    SHA512 d8f7ea161e850a738b9a22187662218871f88ad711282c58631196a74f4a4567184047bab0001b973f841a3b63c7dc7e350f92306cc5fa9a7adc4db2ce09766f
+    REF v1.15.1
+    SHA512 c9ad2ab1102bb97bdd88aa8e06432fff2960fb21172891eee9631ff7cbbdf3366cd7cf5c0baa494eb883135eab47273ed3128851ff4d9adfa004a479e941b6b5
     PATCHES
         0000-system-lib-fix.patch
         0001-suppress-depracation-warnings.patch
         0002-pkgconfig-prefix.patch
+        0003-cmake-typo.patch
 )
 
 vcpkg_find_acquire_program(PYTHON3)
