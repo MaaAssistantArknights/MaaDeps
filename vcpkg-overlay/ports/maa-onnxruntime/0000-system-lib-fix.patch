@@ -1,3 +1,5 @@
+diff --git a/cmake/external/abseil-cpp.cmake b/cmake/external/abseil-cpp.cmake
+index 54d2f9c..1ba1048 100644
 --- a/cmake/external/abseil-cpp.cmake
 +++ b/cmake/external/abseil-cpp.cmake
 @@ -1,44 +1,10 @@
@@ -49,7 +51,7 @@
 \ No newline at end of file
 +endif()
 diff --git a/cmake/external/eigen.cmake b/cmake/external/eigen.cmake
-index 266dd534..8a1f6a43 100644
+index c0f7ddc..e26cb60 100644
 --- a/cmake/external/eigen.cmake
 +++ b/cmake/external/eigen.cmake
 @@ -1,8 +1,7 @@
@@ -64,10 +66,10 @@ index 266dd534..8a1f6a43 100644
      if (onnxruntime_USE_ACL)
          FetchContent_Declare(
 diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
-index 0c419457..e3b3302b 100644
+index 8e412c7..0d169be 100644
 --- a/cmake/external/onnxruntime_external_deps.cmake
 +++ b/cmake/external/onnxruntime_external_deps.cmake
-@@ -139,13 +139,14 @@ FetchContent_Declare(
+@@ -190,13 +190,14 @@ FetchContent_Declare(
      )
  onnxruntime_fetchcontent_makeavailable(date)
  
@@ -88,7 +90,7 @@ index 0c419457..e3b3302b 100644
  
  set(JSON_BuildTests OFF CACHE INTERNAL "")
  set(JSON_Install OFF CACHE INTERNAL "")
-@@ -263,7 +267,7 @@ FetchContent_Declare(
+@@ -317,7 +318,7 @@ FetchContent_Declare(
  )
  
  # The next line will generate an error message "fatal: not a git repository", but it is ok. It is from flatbuffers
@@ -106,7 +108,7 @@ index 0c419457..e3b3302b 100644
  else()
    include(onnx_minimal)
  endif()
-@@ -407,10 +414,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} WIL
+@@ -467,10 +467,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} ${W
  # The other libs do not have the problem. All the sources are already there. We can compile them in any order.
  set(onnxruntime_EXTERNAL_DEPENDENCIES onnx_proto flatbuffers::flatbuffers)
  
