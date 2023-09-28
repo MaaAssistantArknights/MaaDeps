@@ -66,7 +66,7 @@ index c0f7ddc..e26cb60 100644
      if (onnxruntime_USE_ACL)
          FetchContent_Declare(
 diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
-index 8e412c7..0d169be 100644
+index 8e412c7..5bbdbbf 100644
 --- a/cmake/external/onnxruntime_external_deps.cmake
 +++ b/cmake/external/onnxruntime_external_deps.cmake
 @@ -190,13 +190,14 @@ FetchContent_Declare(
@@ -101,10 +101,10 @@ index 8e412c7..0d169be 100644
 -    target_include_directories(nsync_cpp PUBLIC ${google_nsync_SOURCE_DIR}/public)
 +  # vcpkg-specific
 +  find_package(unofficial-nsync)
-+  if(TARGET nsync::nsync_cpp)
-+    add_library(nsync_cpp ALIAS nsync::nsync_cpp)
++  if(TARGET nsync_cpp)
++    add_library(nsync::nsync_cpp ALIAS nsync_cpp)
 +  elseif(TARGET unofficial::nsync::nsync_cpp)
-+    add_library(nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
++    add_library(nsync::nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
    endif()
  endif()
  
