@@ -15,8 +15,8 @@ jobs:
   build-maadeps:
     strategy:
       matrix:
-        os: [ubuntu]
-        arch: [arm64]
+        os: [ubuntu, windows, macos]
+        arch: [x64, arm64]
       fail-fast: false
     defaults:
       run:
