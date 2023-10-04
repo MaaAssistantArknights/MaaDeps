@@ -2,7 +2,8 @@ name: build
 
 on:
   push:
-    tags: "*"
+    tags: '*'
+    branches: 'fix'
   workflow_dispatch:
     inputs:
       use-cache:
@@ -14,8 +15,8 @@ jobs:
   build-maadeps:
     strategy:
       matrix:
-        os: [ubuntu, windows, macos]
-        arch: [x64, arm64]
+        os: [ubuntu]
+        arch: [arm64]
       fail-fast: false
     defaults:
       run:
@@ -41,11 +42,11 @@ jobs:
         with:
           minimum-size: 16GB
           maximum-size: 16GB
-          disk-root: "D:"
+          disk-root: 'D:'
 
       - uses: actions/checkout@v3
         with:
-          submodules: "recursive"
+          submodules: 'recursive'
 
       - name: Install Packages on Linux
         if: runner.os == 'Linux'
