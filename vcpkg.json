@@ -24,14 +24,6 @@
       "platform": "osx | android"
     },
     "cpr",
-    "ms-gsl",
-    "thrift",
-    "boost-asio",
-    "boost-core",
-    "boost-dll",
-    "boost-process",
-    "boost-uuid",
-    "grpc",
-    "protobuf"
+    "ms-gsl"
   ]
 }
