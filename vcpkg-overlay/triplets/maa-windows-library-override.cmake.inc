@@ -14,9 +14,5 @@ if(NOT PORT STREQUAL "maa-fastdeploy")
 endif()
 
 if (PORT STREQUAL "opencv")
-    list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS -DBUILD_opencv_hdf=OFF)
-endif ()
-
-if (PORT STREQUAL "opencv4")
-    list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS -DBUILD_opencv_hdf=OFF)
+    list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS -DBUILD_opencv_hdf=OFF -DBUILD_opencv_quality=OFF)
 endif ()
