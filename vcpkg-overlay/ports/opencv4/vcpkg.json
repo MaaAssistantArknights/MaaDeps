@@ -32,7 +32,12 @@
     },
     "contrib": {
       "description": "opencv_contrib module",
-      "dependencies": []
+      "dependencies": [
+        {
+          "name": "tesseract",
+          "platform": "!uwp & !(windows & (arm | arm64)) & !ios"
+        }
+      ]
     },
     "cuda": {
       "description": "CUDA support for opencv",
