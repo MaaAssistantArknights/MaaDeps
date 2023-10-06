@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    tags: "*"
+    tags: '*'
   workflow_dispatch:
     inputs:
       use-cache:
@@ -41,11 +41,11 @@ jobs:
         with:
           minimum-size: 16GB
           maximum-size: 16GB
-          disk-root: "D:"
+          disk-root: 'D:'
 
       - uses: actions/checkout@v3
         with:
-          submodules: "recursive"
+          submodules: 'recursive'
 
       - name: Install Packages on Linux
         if: runner.os == 'Linux'
