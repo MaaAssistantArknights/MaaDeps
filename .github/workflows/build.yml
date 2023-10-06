@@ -15,8 +15,8 @@ jobs:
   build-maadeps:
     strategy:
       matrix:
-        os: [ubuntu, windows, macos]
-        arch: [x64, arm64]
+        os: [windows]
+        arch: [arm64]
       fail-fast: false
     defaults:
       run:
@@ -165,7 +165,7 @@ jobs:
         if: always()
         run: |
           shopt -s globstar
-          tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log
+          tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log vcpkg/buildtrees/opencv4/src/**/*
 
       - name: Upload Logs
         uses: actions/upload-artifact@v1.0.0
