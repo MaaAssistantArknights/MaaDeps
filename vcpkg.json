@@ -9,13 +9,13 @@
     {
       "name": "opencv",
       "default-features": false,
-      "features": ["eigen", "jpeg", "png", "tiff", "world"]
+      "features": ["eigen", "jpeg", "png", "tiff", "contrib", "world"]
     },
     {
       "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
       "name": "opencv4",
       "default-features": false,
-      "features": ["eigen", "jpeg", "png", "tiff", "world"]
+      "features": ["eigen", "jpeg", "png", "tiff", "contrib", "world"]
     },
     "maa-fastdeploy",
     "zlib",
@@ -27,11 +27,11 @@
     "ms-gsl",
     "thrift",
     "boost-asio",
-    "boost-beast",
     "boost-core",
     "boost-dll",
     "boost-process",
-    "boost-url",
-    "boost-uuid"
+    "boost-uuid",
+    "grpc",
+    "protobuf"
   ]
 }

@@ -1,0 +1,13 @@
+diff --git a/cmake/onnxruntime_mlas.cmake b/cmake/onnxruntime_mlas.cmake
+index e0ccc50..2150b9c 100644
+--- a/cmake/onnxruntime_mlas.cmake
++++ b/cmake/onnxruntime_mlas.cmake
+@@ -594,7 +594,7 @@ if (NOT onnxruntime_BUILD_SHARED_LIB)
+ endif()
+ 
+ 
+-if (NOT onnxruntime_ORT_MINIMAL_BUILD)
++if (FALSE)
+ 
+   #
+   # Command line tool for quantization and de-quantization of 2-D fp32 tensors

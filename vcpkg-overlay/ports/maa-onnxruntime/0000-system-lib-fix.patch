@@ -1,17 +1,5 @@
-diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
-index a5d28fb5..cba7064a 100644
---- a/cmake/CMakeLists.txt
-+++ b/cmake/CMakeLists.txt
-@@ -837,7 +837,6 @@ function(onnxruntime_set_compile_flags target_name)
-         target_compile_options(${target_name} PRIVATE "-Wno-unused-parameter")
-       endif()
-       target_compile_definitions(${target_name} PUBLIC -DNSYNC_ATOMIC_CPP11)
--      target_include_directories(${target_name} PRIVATE "${google_nsync_SOURCE_DIR}/public")
-     endif()
-     foreach(ORT_FLAG ${ORT_PROVIDER_FLAGS})
-       target_compile_definitions(${target_name} PRIVATE ${ORT_FLAG})
 diff --git a/cmake/external/abseil-cpp.cmake b/cmake/external/abseil-cpp.cmake
-index 54d2f9c5..1ba1048a 100644
+index 54d2f9c..1ba1048 100644
 --- a/cmake/external/abseil-cpp.cmake
 +++ b/cmake/external/abseil-cpp.cmake
 @@ -1,44 +1,10 @@
@@ -63,7 +51,7 @@ index 54d2f9c5..1ba1048a 100644
 \ No newline at end of file
 +endif()
 diff --git a/cmake/external/eigen.cmake b/cmake/external/eigen.cmake
-index 266dd534..8a1f6a43 100644
+index c0f7ddc..e26cb60 100644
 --- a/cmake/external/eigen.cmake
 +++ b/cmake/external/eigen.cmake
 @@ -1,8 +1,7 @@
@@ -78,10 +66,10 @@ index 266dd534..8a1f6a43 100644
      if (onnxruntime_USE_ACL)
          FetchContent_Declare(
 diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
-index 0c419457..e3b3302b 100644
+index 8e412c7..5bbdbbf 100644
 --- a/cmake/external/onnxruntime_external_deps.cmake
 +++ b/cmake/external/onnxruntime_external_deps.cmake
-@@ -139,13 +139,14 @@ FetchContent_Declare(
+@@ -190,13 +190,14 @@ FetchContent_Declare(
      )
  onnxruntime_fetchcontent_makeavailable(date)
  
@@ -102,25 +90,25 @@ index 0c419457..e3b3302b 100644
  
  set(JSON_BuildTests OFF CACHE INTERNAL "")
  set(JSON_Install OFF CACHE INTERNAL "")
-@@ -234,10 +235,13 @@ if (onnxruntime_BUILD_BENCHMARKS)
- endif()
+@@ -286,11 +287,12 @@ endif()
  
  if (NOT WIN32)
--  #nsync tests failed on Mac Build
+   #nsync tests failed on Mac Build
 -  set(NSYNC_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 -  onnxruntime_fetchcontent_makeavailable(google_nsync)
--  set(nsync_SOURCE_DIR ${google_nsync_SOURCE_DIR})
+-  if (google_nsync_SOURCE_DIR)
+-    add_library(nsync::nsync_cpp ALIAS nsync_cpp)
+-    target_include_directories(nsync_cpp PUBLIC ${google_nsync_SOURCE_DIR}/public)
 +  # vcpkg-specific
 +  find_package(unofficial-nsync)
-+  if(TARGET nsync::nsync_cpp)
-+    add_library(nsync_cpp ALIAS nsync::nsync_cpp)
++  if(TARGET nsync_cpp)
++    add_library(nsync::nsync_cpp ALIAS nsync_cpp)
 +  elseif(TARGET unofficial::nsync::nsync_cpp)
-+    add_library(nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
-+  endif()
++    add_library(nsync::nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
+   endif()
  endif()
  
- if(onnxruntime_USE_CUDA)
-@@ -263,7 +267,7 @@ FetchContent_Declare(
+@@ -317,7 +319,7 @@ FetchContent_Declare(
  )
  
  # The next line will generate an error message "fatal: not a git repository", but it is ok. It is from flatbuffers
@@ -129,16 +117,6 @@ index 0c419457..e3b3302b 100644
  if(NOT flatbuffers_FOUND)
    if(NOT TARGET flatbuffers::flatbuffers)
      add_library(flatbuffers::flatbuffers ALIAS flatbuffers)
-@@ -361,6 +365,9 @@ FetchContent_Declare(
- 
- if (CPUINFO_SUPPORTED)
-   onnxruntime_fetchcontent_makeavailable(pytorch_cpuinfo)
-+  if(TARGET cpuinfo::cpuinfo)
-+    add_library(cpuinfo ALIAS cpuinfo::cpuinfo)
-+  endif()
- endif()
- 
- 
 @@ -369,7 +376,7 @@ include(eigen)
  include(wil)
  
@@ -148,7 +126,7 @@ index 0c419457..e3b3302b 100644
  else()
    include(onnx_minimal)
  endif()
-@@ -407,10 +414,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} WIL
+@@ -467,10 +467,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} ${W
  # The other libs do not have the problem. All the sources are already there. We can compile them in any order.
  set(onnxruntime_EXTERNAL_DEPENDENCIES onnx_proto flatbuffers::flatbuffers)
  
@@ -159,16 +137,3 @@ index 0c419457..e3b3302b 100644
  
  if (onnxruntime_RUN_ONNX_TESTS)
    add_definitions(-DORT_RUN_EXTERNAL_ONNX_TESTS)
-diff --git a/cmake/onnxruntime_common.cmake b/cmake/onnxruntime_common.cmake
-index 0e02ad9d..f7f7cf9b 100644
---- a/cmake/onnxruntime_common.cmake
-+++ b/cmake/onnxruntime_common.cmake
-@@ -195,7 +195,7 @@ if (ARM64 OR ARM OR X86 OR X64 OR X86_64)
-     # Its functionality in detecting x86 cpu features are lacking, so is support for Windows.
-     if (CPUINFO_SUPPORTED)
-       onnxruntime_add_include_to_target(onnxruntime_common cpuinfo)
--      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo clog)
-+      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo::cpuinfo cpuinfo::clog)
-     endif()
-   endif()
- endif()
