@@ -16,6 +16,7 @@ vcpkg_from_github(
         0003-cmake-typo.patch
         0004-flatbuffers-includes.patch
         0005-disable-onnxruntime_mlas_q4dq.patch
+        0006-typo-install-to-bin.patch
 )
 
 vcpkg_find_acquire_program(PYTHON3)

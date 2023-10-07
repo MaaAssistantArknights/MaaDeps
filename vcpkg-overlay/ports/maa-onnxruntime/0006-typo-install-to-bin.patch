@@ -1,0 +1,13 @@
+diff --git a/cmake/onnxruntime.cmake b/cmake/onnxruntime.cmake
+index 59ebf8e..c83e6a2 100644
+--- a/cmake/onnxruntime.cmake
++++ b/cmake/onnxruntime.cmake
+@@ -255,7 +255,7 @@ install(TARGETS onnxruntime
+         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/onnxruntime
+         ARCHIVE   DESTINATION ${CMAKE_INSTALL_LIBDIR}
+         LIBRARY   DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-        RUNTIME   DESTINATION ${CMAKE_INSTALL_LIBDIR}
++        RUNTIME   DESTINATION ${CMAKE_INSTALL_BINDIR}
+         FRAMEWORK DESTINATION ${CMAKE_INSTALL_BINDIR})
+ 
+ 
