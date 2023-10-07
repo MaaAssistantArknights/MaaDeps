@@ -3,15 +3,15 @@ index 0745cde0..802da0e5 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -139,6 +139,12 @@ if(ANDROID)
-   target_link_libraries(MaaDerpLearning PRIVATE log)
+   target_link_libraries(fastdeploy_ppocr PRIVATE log)
  endif()
  
 +if (APPLE)
-+    set_target_properties(MaaDerpLearning PROPERTIES INSTALL_RPATH "@loader_path")
++    set_target_properties(fastdeploy_ppocr PROPERTIES INSTALL_RPATH "@loader_path")
 +elseif (UNIX)
-+    set_target_properties(MaaDerpLearning PROPERTIES INSTALL_RPATH "$ORIGIN")
++    set_target_properties(fastdeploy_ppocr PROPERTIES INSTALL_RPATH "$ORIGIN")
 +endif (APPLE)
 +
- install(TARGETS MaaDerpLearning EXPORT MaaDerpLearningConfig)
- install(EXPORT MaaDerpLearningConfig DESTINATION share/MaaDerpLearning)
+ install(TARGETS fastdeploy_ppocr EXPORT fastdeploy_ppocrConfig)
+ install(EXPORT fastdeploy_ppocrConfig DESTINATION share/fastdeploy_ppocr)
  install(

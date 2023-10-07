@@ -7,6 +7,7 @@ from . import runtime_linux as linux
 
 exclude = [
     "*onnxruntime_providers_shared*",
+    "*opencv_img_hash*",
 ]
 
 def set_rpath(file, rpath):
