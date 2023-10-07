@@ -11,3 +11,25 @@ index 59ebf8e..c83e6a2 100644
          FRAMEWORK DESTINATION ${CMAKE_INSTALL_BINDIR})
  
  
+diff --git a/cmake/onnxruntime_providers.cmake b/cmake/onnxruntime_providers.cmake
+index 03360ff..03be869 100644
+--- a/cmake/onnxruntime_providers.cmake
++++ b/cmake/onnxruntime_providers.cmake
+@@ -366,7 +366,7 @@ if (NOT onnxruntime_MINIMAL_BUILD AND NOT onnxruntime_EXTENDED_MINIMAL_BUILD
+   install(TARGETS onnxruntime_providers_shared
+           ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+           LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-          RUNTIME  DESTINATION ${CMAKE_INSTALL_LIBDIR}
++          RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
+   )
+ endif()
+ 
+@@ -810,7 +810,7 @@ if (onnxruntime_USE_TENSORRT)
+           PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/onnxruntime
+           ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+           LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-          RUNTIME  DESTINATION ${CMAKE_INSTALL_LIBDIR})
++          RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})
+ endif()
+ 
+ if (onnxruntime_USE_VITISAI)
