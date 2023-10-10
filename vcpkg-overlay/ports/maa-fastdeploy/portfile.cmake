@@ -5,7 +5,6 @@ vcpkg_from_github(
     SHA512 9a328a8113707d7883e128d74217f21bd5e7241e59773709b4e8894e4491cb47b363080231399d43ced4b118e3023aaf856bef2c5a573de5091d7740ec885213
     PATCHES
         000-fix-rpath.patch
-        001-fix-export.patch
 )
 
 vcpkg_cmake_configure(
