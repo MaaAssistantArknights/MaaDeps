@@ -32,6 +32,7 @@
     "boost-process",
     "boost-uuid",
     "grpc",
-    "protobuf"
+    "protobuf",
+    "lua"
   ]
 }
