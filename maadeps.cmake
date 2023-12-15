@@ -2,20 +2,22 @@
 function(detect_maadeps_triplet outvar)
   string(TOLOWER "${CMAKE_SYSTEM_NAME}" maadeps_triplet_system)
   string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" maadeps_triplet_arch)
+
   if(maadeps_triplet_system STREQUAL "darwin")
     set(maadeps_triplet_system "osx")
     list(LENGTH CMAKE_OSX_ARCHITECTURES osx_archcount)
     if(osx_archcount GREATER 1)
       message(FATAL_ERROR "More than one CMAKE_OSX_ARCHITECTURES is not supported")
     elseif(osx_archcount EQUAL 0)
-      message("No CMAKE_OSX_ARCHITECTURES given, default to x86_64")
-      set(maadeps_triplet_arch "x86_64")
+      message("No CMAKE_OSX_ARCHITECTURES given, default to ${maadeps_triplet_arch}")
     else()
       set(maadeps_triplet_arch "${CMAKE_OSX_ARCHITECTURES}")
     endif()
   endif()
+
   message("maadeps_triplet_system: ${maadeps_triplet_system}")
   message("maadeps_triplet_arch: ${maadeps_triplet_arch}")
+
   if(maadeps_triplet_arch MATCHES "(amd64|x86_64)")
     set(maadeps_triplet_arch "x64")
   elseif(maadeps_triplet_arch MATCHES "i[3456]86")
@@ -25,6 +27,7 @@ function(detect_maadeps_triplet outvar)
   else()
     message(FATAL_ERROR "Unrecognized CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
   endif()
+  
   set(${outvar} "maa-${maadeps_triplet_arch}-${maadeps_triplet_system}" PARENT_SCOPE)
 endfunction()
 
