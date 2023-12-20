@@ -16,6 +16,11 @@ jobs:
       matrix:
         os: [ubuntu, windows, macos]
         arch: [x64, arm64]
+        include:
+          - os: ubuntu
+            arch: arm64-android
+          - os: ubuntu
+            arch: x64-android
       fail-fast: false
     defaults:
       run:
@@ -161,7 +166,7 @@ jobs:
           done
 
       - name: Collect Logs
-        if: always()
+        if: always() 
         run: |
           shopt -s globstar
           tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log
