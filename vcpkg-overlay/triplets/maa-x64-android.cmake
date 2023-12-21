@@ -6,5 +6,5 @@ set(VCPKG_BUILD_TYPE release)
 set(VCPKG_MAKE_BUILD_TRIPLET "--host=x86_64-linux-android")
 set(VCPKG_CMAKE_CONFIGURE_OPTIONS ${VCPKG_CMAKE_CONFIGURE_OPTIONS} -DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF)
 
-include(${CMAKE_CURRENT_LIST_DIR}/maa-linux-library-override.cmake.inc)
-include(${CMAKE_CURRENT_LIST_DIR}/maa-android-library-override.cmake.inc)
+include(${CMAKE_CURRENT_LIST_DIR}/maa-linux-library-override.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/maa-android-library-override.cmake)

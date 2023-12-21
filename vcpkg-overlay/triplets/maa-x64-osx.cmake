@@ -9,4 +9,4 @@ set(VCPKG_OSX_DEPLOYMENT_TARGET 11.0)
 string(APPEND VCPKG_C_FLAGS "-g -DNDEBUG")
 string(APPEND VCPKG_CXX_FLAGS "-g -DNDEBUG")
 
-include(${CMAKE_CURRENT_LIST_DIR}/maa-linux-library-override.cmake.inc)
+include(${CMAKE_CURRENT_LIST_DIR}/maa-linux-library-override.cmake)
