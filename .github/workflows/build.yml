@@ -19,10 +19,8 @@ jobs:
         include:
           - os: ubuntu
             arch: arm64-android
-        # clang-14: error: the clang compiler does not support '-march=i686'
-        # https://github.com/MaaAssistantArknights/MaaDeps/actions/runs/7284612795/job/19850237863
-        #   - os: ubuntu
-        #     arch: x64-android
+          - os: ubuntu
+            arch: x64-android
       fail-fast: false
     defaults:
       run:
@@ -69,7 +67,7 @@ jobs:
         if: contains(matrix.arch, 'android')
         id: setup-ndk
         with:
-          ndk-version: r25b
+          ndk-version: r26b
           add-to-path: false
 
       - name: Install Packages on MacOS
