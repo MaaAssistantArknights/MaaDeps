@@ -19,8 +19,10 @@ jobs:
         include:
           - os: ubuntu
             arch: arm64-android
-          - os: ubuntu
-            arch: x64-android
+        # clang-14: error: the clang compiler does not support '-march=i686'
+        # https://github.com/MaaAssistantArknights/MaaDeps/actions/runs/7284612795/job/19850237863
+        #   - os: ubuntu
+        #     arch: x64-android
       fail-fast: false
     defaults:
       run:
