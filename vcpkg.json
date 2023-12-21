@@ -34,7 +34,6 @@
     "boost-url",
     "boost-uuid",
     "grpc",
-    "protobuf",
-    "lua"
+    "protobuf"
   ]
 }

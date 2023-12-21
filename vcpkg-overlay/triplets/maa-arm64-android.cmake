@@ -7,4 +7,5 @@ set(VCPKG_MAKE_BUILD_TRIPLET "--host=aarch64-linux-android")
 set(VCPKG_CMAKE_CONFIGURE_OPTIONS ${VCPKG_CMAKE_CONFIGURE_OPTIONS} -DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF
                                     -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-s")
 
-include(${CMAKE_CURRENT_LIST_DIR}/maa-linux-library-override.cmake.inc)
+include(${CMAKE_CURRENT_LIST_DIR}/maa-linux-library-override.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/maa-android-library-override.cmake)
