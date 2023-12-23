@@ -19,6 +19,8 @@ jobs:
         include:
           - os: ubuntu
             arch: arm64-android
+          - os: ubuntu
+            arch: arm-android
         # clang-17: error: unsupported argument 'i686' to option '-march='
         # https://github.com/MaaAssistantArknights/MaaDeps/actions/runs/7285060481/job/19851366697
         #   - os: ubuntu
