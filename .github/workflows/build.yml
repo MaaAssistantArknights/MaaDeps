@@ -2,7 +2,6 @@ name: build
 
 on:
   push:
-    tags: "*"
   workflow_dispatch:
     inputs:
       use-cache:
@@ -17,8 +16,11 @@ jobs:
         os: [ubuntu, windows, macos]
         arch: [x64, arm64]
         include:
+        # https://github.com/MaaAssistantArknights/MaaDeps/issues/20
+        #   - os: ubuntu
+        #     arch: arm64-android
           - os: ubuntu
-            arch: arm64-android
+            arch: arm-android
         # clang-17: error: unsupported argument 'i686' to option '-march='
         # https://github.com/MaaAssistantArknights/MaaDeps/actions/runs/7285060481/job/19851366697
         #   - os: ubuntu
@@ -69,12 +71,15 @@ jobs:
         if: contains(matrix.arch, 'android')
         id: setup-ndk
         with:
-          # clang-17: error: unknown argument: '-avoid-version'
-          # https://github.com/MaaAssistantArknights/MaaDeps/actions/runs/7285134601/job/19851552458
-          # https://github.com/microsoft/vcpkg/issues/31332
-          #   ndk-version: r26b
-          ndk-version: r25c
+          ndk-version: r26b
           add-to-path: false
+
+      # https://github.com/microsoft/vcpkg/issues/31332
+      - name: Fix Android LDFLAGS error
+        if: contains(matrix.arch, 'android')
+        run: |
+          git -C vcpkg apply ../vcpkg-overlay/scripts/remove_avoid-version.patch
+        
 
       - name: Install Packages on MacOS
         if: runner.os == 'macOS'

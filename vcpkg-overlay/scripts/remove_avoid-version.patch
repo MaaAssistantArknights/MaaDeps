@@ -1,0 +1,21 @@
+diff --git a/scripts/cmake/vcpkg_configure_make.cmake b/scripts/cmake/vcpkg_configure_make.cmake
+index 6d6867da0f..3af1a3b9bc 100644
+--- a/scripts/cmake/vcpkg_configure_make.cmake
++++ b/scripts/cmake/vcpkg_configure_make.cmake
+@@ -791,10 +791,12 @@ function(vcpkg_configure_make)
+         # https://www.gnu.org/software/libtool/manual/html_node/Link-mode.html
+         # -avoid-version is handled specially by libtool link mode, this flag is not forwarded to linker,
+         # and libtool tries to avoid versioning for shared libraries and no symbolic links are created.
+-        if(VCPKG_TARGET_IS_ANDROID)
+-            set(ENV{LDFLAGS} "-avoid-version $ENV{LDFLAGS}")
+-            set(ENV{LDFLAGS_FOR_BUILD} "-avoid-version $ENV{LDFLAGS_FOR_BUILD}")
+-        endif()
++        
++        # fix https://github.com/microsoft/vcpkg/issues/31332
++        # if(VCPKG_TARGET_IS_ANDROID)
++        #     set(ENV{LDFLAGS} "-avoid-version $ENV{LDFLAGS}")
++        #     set(ENV{LDFLAGS_FOR_BUILD} "-avoid-version $ENV{LDFLAGS_FOR_BUILD}")
++        # endif()
+ 
+         if(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
+             # configure not using all flags to check if compiler works ...
