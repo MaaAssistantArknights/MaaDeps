@@ -5,8 +5,7 @@ set(VCPKG_CMAKE_SYSTEM_VERSION 23)
 set(VCPKG_BUILD_TYPE release)
 set(VCPKG_MAKE_BUILD_TRIPLET "--host=arm-linux-android")
 set(VCPKG_TARGET_TRIPLET arm-android)
-set(VCPKG_CMAKE_CONFIGURE_OPTIONS ${VCPKG_CMAKE_CONFIGURE_OPTIONS} -DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF
-                                    -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-s")
+set(VCPKG_CMAKE_CONFIGURE_OPTIONS ${VCPKG_CMAKE_CONFIGURE_OPTIONS} -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-s")
 
 include(${CMAKE_CURRENT_LIST_DIR}/maa-linux-library-override.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/maa-android-library-override.cmake)
