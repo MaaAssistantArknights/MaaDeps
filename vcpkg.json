@@ -6,34 +6,6 @@
   "homepage": "https://github.com/MaaAssistantArknights/MaaDeps",
   "license": null,
   "dependencies": [
-    {
-      "name": "opencv",
-      "default-features": false,
-      "features": ["eigen", "jpeg", "png", "tiff", "world"]
-    },
-    {
-      "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
-      "name": "opencv4",
-      "default-features": false,
-      "features": ["eigen", "jpeg", "png", "tiff", "world"]
-    },
-    "maa-fastdeploy",
-    "zlib",
-    {
-      "name": "range-v3",
-      "platform": "osx | android"
-    },
-    "cpr",
-    "ms-gsl",
-    "thrift",
-    "boost-asio",
-    "boost-beast",
-    "boost-core",
-    "boost-dll",
-    "boost-process",
-    "boost-url",
-    "boost-uuid",
-    "grpc",
-    "protobuf"
+    "cpr"
   ]
 }
