@@ -1,7 +1,7 @@
-diff --git a/socket_ops.ipp b/socket_ops.ipp
+diff --git a/include/boost/asio/detail/impl/socket_ops.ipp b/include/boost/asio/detail/impl/socket_ops.ipp
 index 6e2b29b..d0ff1c7 100644
---- a/socket_ops.ipp
-+++ b/socket_ops.ipp
+--- a/include/boost/asio/detail/impl/socket_ops.ipp
++++ b/include/boost/asio/detail/impl/socket_ops.ipp
 @@ -1814,7 +1814,7 @@ socket_type socket(int af, int type, int protocol,
      boost::system::error_code& ec)
  {
