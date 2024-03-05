@@ -1,0 +1,13 @@
+diff --git a/socket_ops.ipp b/socket_ops.ipp
+index 6e2b29b..d0ff1c7 100644
+--- a/socket_ops.ipp
++++ b/socket_ops.ipp
+@@ -1814,7 +1814,7 @@ socket_type socket(int af, int type, int protocol,
+     boost::system::error_code& ec)
+ {
+ #if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+-  socket_type s = ::WSASocketW(af, type, protocol, 0, 0, WSA_FLAG_OVERLAPPED);
++  socket_type s = ::WSASocketW(af, type, protocol, 0, 0, WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
+   get_last_error(ec, s == invalid_socket);
+   if (s == invalid_socket)
+     return s;
