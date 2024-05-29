@@ -1,20 +1,8 @@
-diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
-index a5d28fb5..cba7064a 100644
---- a/cmake/CMakeLists.txt
-+++ b/cmake/CMakeLists.txt
-@@ -837,7 +837,6 @@ function(onnxruntime_set_compile_flags target_name)
-         target_compile_options(${target_name} PRIVATE "-Wno-unused-parameter")
-       endif()
-       target_compile_definitions(${target_name} PUBLIC -DNSYNC_ATOMIC_CPP11)
--      target_include_directories(${target_name} PRIVATE "${google_nsync_SOURCE_DIR}/public")
-     endif()
-     foreach(ORT_FLAG ${ORT_PROVIDER_FLAGS})
-       target_compile_definitions(${target_name} PRIVATE ${ORT_FLAG})
 diff --git a/cmake/external/abseil-cpp.cmake b/cmake/external/abseil-cpp.cmake
-index 54d2f9c5..1ba1048a 100644
+index 57cfbee46..529f8dfa5 100644
 --- a/cmake/external/abseil-cpp.cmake
 +++ b/cmake/external/abseil-cpp.cmake
-@@ -1,44 +1,10 @@
+@@ -1,47 +1,7 @@
  # Copyright (c) Microsoft Corporation. All rights reserved.
  # Licensed under the MIT License.
  
@@ -23,15 +11,20 @@ index 54d2f9c5..1ba1048a 100644
 -# Pass to build
 -set(ABSL_PROPAGATE_CXX_STD 1)
 -set(BUILD_TESTING 0)
--
+-set(ABSL_BUILD_TESTING OFF)
+-set(ABSL_BUILD_TEST_HELPERS OFF)
+-set(ABSL_USE_EXTERNAL_GOOGLETEST ON)
 -if(Patch_FOUND AND WIN32)
 -  set(ABSL_PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/abseil/absl_windows.patch)
 -else()
 -  set(ABSL_PATCH_COMMAND "")
 -endif()
--
+-if(WIN32 AND NOT Patch_FOUND)
+-  #see https://github.com/google/re2/issues/425 and https://github.com/google/re2/issues/436
+-  set(ABSL_ENABLE_INSTALL ON)
+-endif()
 -# NB! Advancing Abseil version changes its internal namespace,
--# currently absl::lts_20211102 which affects abseil-cpp.natvis debugger
+-# currently absl::lts_20240116 which affects abseil-cpp.natvis debugger
 -# visualization file, that must be adjusted accordingly, unless we eliminate
 -# that namespace at build time.
 -FetchContent_Declare(
@@ -39,6 +32,7 @@ index 54d2f9c5..1ba1048a 100644
 -    URL ${DEP_URL_abseil_cpp}
 -    URL_HASH SHA1=${DEP_SHA1_abseil_cpp}
 -    PATCH_COMMAND ${ABSL_PATCH_COMMAND}
+-    FIND_PACKAGE_ARGS NAMES absl
 -)
 -
 -onnxruntime_fetchcontent_makeavailable(abseil_cpp)
@@ -55,19 +49,13 @@ index 54d2f9c5..1ba1048a 100644
 -endif()
 +find_package(absl REQUIRED)
  
- if(NOT onnxruntime_DISABLE_ABSEIL)
-   set(ABSEIL_LIBS absl::inlined_vector absl::flat_hash_set
-     absl::flat_hash_map absl::node_hash_set absl::node_hash_map absl::base absl::throw_delegate absl::raw_hash_set
-     absl::hash absl::city absl::low_level_hash absl::raw_logging_internal)
--endif()
-\ No newline at end of file
-+endif()
+ # TODO: since multiple ORT's dependencies depend on Abseil, the list below would vary from version to version.
+ # We'd better to not manually manage the list.
 diff --git a/cmake/external/eigen.cmake b/cmake/external/eigen.cmake
-index 266dd534..8a1f6a43 100644
+index b123adb62..3d8fa153f 100644
 --- a/cmake/external/eigen.cmake
 +++ b/cmake/external/eigen.cmake
-@@ -1,8 +1,7 @@
- 
+@@ -1,7 +1,6 @@
  if (onnxruntime_USE_PREINSTALLED_EIGEN)
 -    add_library(eigen INTERFACE)
 -    file(TO_CMAKE_PATH ${eigen_SOURCE_PATH} eigen_INCLUDE_DIRS)
@@ -75,80 +63,120 @@ index 266dd534..8a1f6a43 100644
 +    find_package(Eigen3 CONFIG REQUIRED)
 +    add_library(eigen ALIAS Eigen3::Eigen)
  else ()
-     if (onnxruntime_USE_ACL)
-         FetchContent_Declare(
+     FetchContent_Declare(
+         eigen
 diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
-index 0c419457..e3b3302b 100644
+index 8839dbc8f..4a33ebda7 100644
 --- a/cmake/external/onnxruntime_external_deps.cmake
 +++ b/cmake/external/onnxruntime_external_deps.cmake
-@@ -139,13 +139,14 @@ FetchContent_Declare(
-     )
+@@ -94,6 +94,7 @@ FetchContent_Declare(
+       mimalloc
+       URL ${DEP_URL_mimalloc}
+       URL_HASH SHA1=${DEP_SHA1_mimalloc}
++      FIND_PACKAGE_ARGS NAMES mimalloc
+ )
+ 
+ 
+@@ -200,7 +201,7 @@ FetchContent_Declare(
+   URL ${DEP_URL_protobuf}
+   URL_HASH SHA1=${DEP_SHA1_protobuf}
+   PATCH_COMMAND ${ONNXRUNTIME_PROTOBUF_PATCH_COMMAND}
+-  FIND_PACKAGE_ARGS 3.21.12 NAMES Protobuf
++  FIND_PACKAGE_ARGS 3.21.12 NAMES Protobuf CONFIGS
+ )
+ 
+ set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build protobuf tests" FORCE)
+@@ -233,11 +234,17 @@ FetchContent_Declare(
+ )
  onnxruntime_fetchcontent_makeavailable(date)
  
-+if(NOT TARGET date_interface)
-+  # headers installed by vcpkg
-+  add_library(date_interface INTERFACE)
-+endif()
- 
--
 -FetchContent_Declare(
 -  mp11
 -  URL ${DEP_URL_mp11}
 -  URL_HASH SHA1=${DEP_SHA1_mp11}
 -)
++
++# BEGIN vcpkg-specific
++if(NOT TARGET date_interface)
++  # headers installed by vcpkg
++  add_library(date_interface INTERFACE)
++endif()
++
 +# mp11 is a header-only library installed without CMake support.
 +add_library(mp11 INTERFACE)
 +add_library(Boost::mp11 ALIAS mp11)
++# END vcpkg-specific
  
  set(JSON_BuildTests OFF CACHE INTERNAL "")
  set(JSON_Install OFF CACHE INTERNAL "")
-@@ -234,10 +235,13 @@ if (onnxruntime_BUILD_BENCHMARKS)
+@@ -287,15 +294,8 @@ endif()
+ # xnnpack depends on clog
+ # Android build should use the system's log library instead of clog
+ if ((CPUINFO_SUPPORTED OR onnxruntime_USE_XNNPACK) AND NOT ANDROID)
+-  set(CLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+-  FetchContent_Declare(
+-    pytorch_clog
+-    URL ${DEP_URL_pytorch_cpuinfo}
+-    URL_HASH SHA1=${DEP_SHA1_pytorch_cpuinfo}
+-    SOURCE_SUBDIR deps/clog
+-  )
+-  set(ONNXRUNTIME_CLOG_PROJ pytorch_clog)
+-  set(ONNXRUNTIME_CLOG_TARGET_NAME clog)
++  find_package(cpuinfo CONFIG REQUIRED)
++  set(ONNXRUNTIME_CLOG_TARGET_NAME cpuinfo::clog)
+ endif()
+ 
+ if (CPUINFO_SUPPORTED)
+@@ -332,6 +332,9 @@ if (CPUINFO_SUPPORTED)
+         FIND_PACKAGE_ARGS NAMES cpuinfo
+       )
+   endif()
++  if(TARGET cpuinfo::cpuinfo)
++    add_library(cpuinfo ALIAS cpuinfo::cpuinfo)
++  endif()
+   set(ONNXRUNTIME_CPUINFO_PROJ pytorch_cpuinfo)
+ endif()
+ 
+@@ -341,12 +344,12 @@ if (onnxruntime_BUILD_BENCHMARKS)
  endif()
  
  if (NOT WIN32)
 -  #nsync tests failed on Mac Build
 -  set(NSYNC_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 -  onnxruntime_fetchcontent_makeavailable(google_nsync)
--  set(nsync_SOURCE_DIR ${google_nsync_SOURCE_DIR})
+-  if (google_nsync_SOURCE_DIR)
+-    add_library(nsync::nsync_cpp ALIAS nsync_cpp)
+-    target_include_directories(nsync_cpp PUBLIC ${google_nsync_SOURCE_DIR}/public)
 +  # vcpkg-specific
 +  find_package(unofficial-nsync)
 +  if(TARGET nsync::nsync_cpp)
 +    add_library(nsync_cpp ALIAS nsync::nsync_cpp)
 +  elseif(TARGET unofficial::nsync::nsync_cpp)
 +    add_library(nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
-+  endif()
+   endif()
  endif()
  
- if(onnxruntime_USE_CUDA)
-@@ -263,7 +267,7 @@ FetchContent_Declare(
- )
+@@ -380,7 +383,7 @@ onnxruntime_fetchcontent_makeavailable(utf8_range)
+ # protobuf's cmake/utf8_range.cmake has the following line
+ include_directories(${utf8_range_SOURCE_DIR})
  
- # The next line will generate an error message "fatal: not a git repository", but it is ok. It is from flatbuffers
--onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json mp11 re2 safeint GSL flatbuffers)
-+onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json re2 safeint GSL flatbuffers)
+-onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json mp11 re2 GSL flatbuffers ${ONNXRUNTIME_CPUINFO_PROJ} ${ONNXRUNTIME_CLOG_PROJ})
++onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json re2 GSL flatbuffers ${ONNXRUNTIME_CPUINFO_PROJ})
  if(NOT flatbuffers_FOUND)
    if(NOT TARGET flatbuffers::flatbuffers)
      add_library(flatbuffers::flatbuffers ALIAS flatbuffers)
-@@ -361,6 +365,9 @@ FetchContent_Declare(
- 
- if (CPUINFO_SUPPORTED)
-   onnxruntime_fetchcontent_makeavailable(pytorch_cpuinfo)
-+  if(TARGET cpuinfo::cpuinfo)
-+    add_library(cpuinfo ALIAS cpuinfo::cpuinfo)
-+  endif()
- endif()
- 
- 
-@@ -369,7 +376,7 @@ include(eigen)
+@@ -484,7 +487,9 @@ include(eigen)
  include(wil)
  
  if (NOT onnxruntime_MINIMAL_BUILD)
 -    onnxruntime_fetchcontent_makeavailable(onnx)
-+  find_package(ONNX REQUIRED)
++  find_package(ONNX CONFIGS REQUIRED)
++  add_library(onnx ALIAS ONNX::onnx)
++  add_library(onnx_proto ALIAS ONNX::onnx_proto)
  else()
    include(onnx_minimal)
  endif()
-@@ -407,10 +414,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} WIL
+@@ -522,11 +527,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} ${W
  # The other libs do not have the problem. All the sources are already there. We can compile them in any order.
  set(onnxruntime_EXTERNAL_DEPENDENCIES onnx_proto flatbuffers::flatbuffers)
  
@@ -156,19 +184,7 @@ index 0c419457..e3b3302b 100644
 -if (NOT onnxruntime_USE_FULL_PROTOBUF)
 -  target_compile_definitions(onnx PUBLIC "__ONNX_NO_DOC_STRINGS")
 -endif()
- 
+-
  if (onnxruntime_RUN_ONNX_TESTS)
    add_definitions(-DORT_RUN_EXTERNAL_ONNX_TESTS)
-diff --git a/cmake/onnxruntime_common.cmake b/cmake/onnxruntime_common.cmake
-index 0e02ad9d..f7f7cf9b 100644
---- a/cmake/onnxruntime_common.cmake
-+++ b/cmake/onnxruntime_common.cmake
-@@ -195,7 +195,7 @@ if (ARM64 OR ARM OR X86 OR X64 OR X86_64)
-     # Its functionality in detecting x86 cpu features are lacking, so is support for Windows.
-     if (CPUINFO_SUPPORTED)
-       onnxruntime_add_include_to_target(onnxruntime_common cpuinfo)
--      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo clog)
-+      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo::cpuinfo cpuinfo::clog)
-     endif()
-   endif()
  endif()

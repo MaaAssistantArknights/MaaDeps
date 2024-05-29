@@ -7,8 +7,8 @@ endif()
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO microsoft/onnxruntime
-    REF v1.14.1
-    SHA512 d8f7ea161e850a738b9a22187662218871f88ad711282c58631196a74f4a4567184047bab0001b973f841a3b63c7dc7e350f92306cc5fa9a7adc4db2ce09766f
+    REF v1.18.0
+    SHA512 2e1d724eda5635fc24f93966412c197c82ee933aaea4f4ce907b5f2ee7730c1e741f2ef4d50a2d54284fc7bd05bf104bd3c56fd4466525fcd70e63c07fbb2b16
     PATCHES
         0000-system-lib-fix.patch
 )
@@ -21,6 +21,14 @@ vcpkg_execute_build_process(
     LOGNAME LOGNAME "flatbuffers-compile-${TARGET_TRIPLET}"
 )
 
+set(PLATFORM_OPTIONS )
+
+if(VCPKG_TARGET_IS_WINDOWS)
+    set(PLATFORM_OPTIONS ${PLATFORM_OPTIONS} "-Donnxruntime_USE_DML=ON")
+elseif(VCPKG_TARGET_IS_OSX)
+    set(PLATFORM_OPTIONS ${PLATFORM_OPTIONS} "-Donnxruntime_USE_COREML=ON")
+endif()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}/cmake"
     OPTIONS
@@ -31,10 +39,12 @@ vcpkg_cmake_configure(
     "-Donnxruntime_USE_PREINSTALLED_EIGEN=ON"
     "-DFLATBUFFERS_BUILD_FLATC=OFF"
     "-DCMAKE_INSTALL_INCLUDEDIR=include"
+    ${PLATFORM_OPTIONS}
     OPTIONS_RELEASE
     "-Donnxruntime_ENABLE_LTO=ON"
 )
 vcpkg_cmake_install()
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/onnxruntime)
 vcpkg_copy_pdbs()
 
 file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)

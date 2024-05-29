@@ -1,6 +1,6 @@
 {
   "name": "maa-onnxruntime",
-  "version": "1.14.1",
+  "version": "1.18.0",
   "description": "onnxruntime",
   "homepage": "https://github.com/microsoft/onnxruntime",
   "license": "MIT",
@@ -10,6 +10,7 @@
     "boost-mp11",
     "cpuinfo",
     "date",
+    "mimalloc",
     "eigen3",
     {
       "name": "abseil",
@@ -37,6 +38,14 @@
       "platform": "windows"
     },
     "onnx",
-    "ms-gsl"
+    "ms-gsl",
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    },
+    {
+      "name": "directx-headers",
+      "platform": "windows"
+    }
   ]
 }
