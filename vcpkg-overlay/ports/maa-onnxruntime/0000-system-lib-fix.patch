@@ -79,7 +79,7 @@ index b123adb62..3d8fa153f 100644
      FetchContent_Declare(
          eigen
 diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
-index 8839dbc8f..e8ea4a8b2 100644
+index 8839dbc8f..bfed2cc91 100644
 --- a/cmake/external/onnxruntime_external_deps.cmake
 +++ b/cmake/external/onnxruntime_external_deps.cmake
 @@ -85,7 +85,7 @@ if (NOT WIN32)
@@ -149,17 +149,26 @@ index 8839dbc8f..e8ea4a8b2 100644
  endif()
  
  if (CPUINFO_SUPPORTED)
-@@ -332,6 +332,9 @@ if (CPUINFO_SUPPORTED)
+@@ -324,15 +324,11 @@ if (CPUINFO_SUPPORTED)
+         PATCH_COMMAND ${Patch_EXECUTABLE} -p1 < ${PROJECT_SOURCE_DIR}/patches/cpuinfo/9bb12d342fd9479679d505d93a478a6f9cd50a47.patch
          FIND_PACKAGE_ARGS NAMES cpuinfo
        )
++      set(ONNXRUNTIME_CPUINFO_PROJ pytorch_cpuinfo)
+   else()
+-      FetchContent_Declare(
+-        pytorch_cpuinfo
+-        URL ${DEP_URL_pytorch_cpuinfo}
+-        URL_HASH SHA1=${DEP_SHA1_pytorch_cpuinfo}
+-        FIND_PACKAGE_ARGS NAMES cpuinfo
+-      )
++      find_package(cpuinfo CONFIG REQUIRED)
++      add_library(cpuinfo ALIAS cpuinfo::cpuinfo)
    endif()
-+  if(TARGET cpuinfo::cpuinfo)
-+    add_library(cpuinfo ALIAS cpuinfo::cpuinfo)
-+  endif()
-   set(ONNXRUNTIME_CPUINFO_PROJ pytorch_cpuinfo)
+-  set(ONNXRUNTIME_CPUINFO_PROJ pytorch_cpuinfo)
  endif()
  
-@@ -341,12 +344,10 @@ if (onnxruntime_BUILD_BENCHMARKS)
+ 
+@@ -341,12 +337,10 @@ if (onnxruntime_BUILD_BENCHMARKS)
  endif()
  
  if (NOT WIN32)
@@ -176,7 +185,7 @@ index 8839dbc8f..e8ea4a8b2 100644
    endif()
  endif()
  
-@@ -380,7 +381,7 @@ onnxruntime_fetchcontent_makeavailable(utf8_range)
+@@ -380,7 +374,7 @@ onnxruntime_fetchcontent_makeavailable(utf8_range)
  # protobuf's cmake/utf8_range.cmake has the following line
  include_directories(${utf8_range_SOURCE_DIR})
  
@@ -185,7 +194,7 @@ index 8839dbc8f..e8ea4a8b2 100644
  if(NOT flatbuffers_FOUND)
    if(NOT TARGET flatbuffers::flatbuffers)
      add_library(flatbuffers::flatbuffers ALIAS flatbuffers)
-@@ -484,7 +485,9 @@ include(eigen)
+@@ -484,7 +478,9 @@ include(eigen)
  include(wil)
  
  if (NOT onnxruntime_MINIMAL_BUILD)
@@ -196,7 +205,7 @@ index 8839dbc8f..e8ea4a8b2 100644
  else()
    include(onnx_minimal)
  endif()
-@@ -522,11 +525,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} ${W
+@@ -522,11 +518,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} ${W
  # The other libs do not have the problem. All the sources are already there. We can compile them in any order.
  set(onnxruntime_EXTERNAL_DEPENDENCIES onnx_proto flatbuffers::flatbuffers)
  
@@ -208,7 +217,7 @@ index 8839dbc8f..e8ea4a8b2 100644
  if (onnxruntime_RUN_ONNX_TESTS)
    add_definitions(-DORT_RUN_EXTERNAL_ONNX_TESTS)
  endif()
-@@ -558,14 +556,7 @@ if(onnxruntime_ENABLE_TRAINING OR (onnxruntime_ENABLE_TRAINING_APIS AND onnxrunt
+@@ -558,14 +549,7 @@ if(onnxruntime_ENABLE_TRAINING OR (onnxruntime_ENABLE_TRAINING_APIS AND onnxrunt
  endif()
  
  if (onnxruntime_USE_COREML)
