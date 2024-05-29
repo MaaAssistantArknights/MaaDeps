@@ -27,7 +27,7 @@ set(PLATFORM_OPTIONS )
 if(VCPKG_TARGET_IS_WINDOWS)
     set(PLATFORM_OPTIONS ${PLATFORM_OPTIONS} "-Donnxruntime_USE_DML=ON")
 elseif(VCPKG_TARGET_IS_OSX)
-    set(PLATFORM_OPTIONS ${PLATFORM_OPTIONS} "-Donnxruntime_USE_COREML=ON")
+    # set(PLATFORM_OPTIONS ${PLATFORM_OPTIONS} "-Donnxruntime_USE_COREML=ON")
 endif()
 
 vcpkg_cmake_configure(
