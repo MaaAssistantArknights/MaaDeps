@@ -66,9 +66,18 @@ index b123adb62..3d8fa153f 100644
      FetchContent_Declare(
          eigen
 diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
-index 8839dbc8f..4a33ebda7 100644
+index 8839dbc8f..acdb8a1ee 100644
 --- a/cmake/external/onnxruntime_external_deps.cmake
 +++ b/cmake/external/onnxruntime_external_deps.cmake
+@@ -85,7 +85,7 @@ if (NOT WIN32)
+     google_nsync
+     URL ${DEP_URL_google_nsync}
+     URL_HASH SHA1=${DEP_SHA1_google_nsync}
+-    FIND_PACKAGE_ARGS NAMES nsync
++    FIND_PACKAGE_ARGS NAMES unofficial-nsync
+     )
+ endif()
+ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/external)
 @@ -94,6 +94,7 @@ FetchContent_Declare(
        mimalloc
        URL ${DEP_URL_mimalloc}
@@ -137,7 +146,7 @@ index 8839dbc8f..4a33ebda7 100644
    set(ONNXRUNTIME_CPUINFO_PROJ pytorch_cpuinfo)
  endif()
  
-@@ -341,12 +344,12 @@ if (onnxruntime_BUILD_BENCHMARKS)
+@@ -341,12 +344,10 @@ if (onnxruntime_BUILD_BENCHMARKS)
  endif()
  
  if (NOT WIN32)
@@ -148,15 +157,13 @@ index 8839dbc8f..4a33ebda7 100644
 -    add_library(nsync::nsync_cpp ALIAS nsync_cpp)
 -    target_include_directories(nsync_cpp PUBLIC ${google_nsync_SOURCE_DIR}/public)
 +  # vcpkg-specific
-+  find_package(unofficial-nsync)
-+  if(TARGET nsync::nsync_cpp)
-+    add_library(nsync_cpp ALIAS nsync::nsync_cpp)
-+  elseif(TARGET unofficial::nsync::nsync_cpp)
-+    add_library(nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
++  find_package(unofficial-nsync CONFIGS REQUIRED)
++  if(TARGET unofficial::nsync::nsync_cpp)
++    add_library(nsync::nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
    endif()
  endif()
  
-@@ -380,7 +383,7 @@ onnxruntime_fetchcontent_makeavailable(utf8_range)
+@@ -380,7 +381,7 @@ onnxruntime_fetchcontent_makeavailable(utf8_range)
  # protobuf's cmake/utf8_range.cmake has the following line
  include_directories(${utf8_range_SOURCE_DIR})
  
@@ -165,7 +172,7 @@ index 8839dbc8f..4a33ebda7 100644
  if(NOT flatbuffers_FOUND)
    if(NOT TARGET flatbuffers::flatbuffers)
      add_library(flatbuffers::flatbuffers ALIAS flatbuffers)
-@@ -484,7 +487,9 @@ include(eigen)
+@@ -484,7 +485,9 @@ include(eigen)
  include(wil)
  
  if (NOT onnxruntime_MINIMAL_BUILD)
@@ -176,7 +183,7 @@ index 8839dbc8f..4a33ebda7 100644
  else()
    include(onnx_minimal)
  endif()
-@@ -522,11 +527,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} ${W
+@@ -522,11 +525,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} ${W
  # The other libs do not have the problem. All the sources are already there. We can compile them in any order.
  set(onnxruntime_EXTERNAL_DEPENDENCIES onnx_proto flatbuffers::flatbuffers)
  
