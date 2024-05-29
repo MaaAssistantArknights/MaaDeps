@@ -67,7 +67,7 @@ jobs:
         if: contains(matrix.arch, 'android')
         id: setup-ndk
         with:
-          ndk-version: r25b
+          ndk-version: r26d
           add-to-path: false
 
       - name: Install Packages on MacOS
