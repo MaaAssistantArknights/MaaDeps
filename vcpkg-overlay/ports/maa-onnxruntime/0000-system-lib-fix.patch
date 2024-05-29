@@ -157,7 +157,7 @@ index 8839dbc8f..acdb8a1ee 100644
 -    add_library(nsync::nsync_cpp ALIAS nsync_cpp)
 -    target_include_directories(nsync_cpp PUBLIC ${google_nsync_SOURCE_DIR}/public)
 +  # vcpkg-specific
-+  find_package(unofficial-nsync CONFIGS REQUIRED)
++  find_package(unofficial-nsync CONFIG REQUIRED)
 +  if(TARGET unofficial::nsync::nsync_cpp)
 +    add_library(nsync::nsync_cpp ALIAS unofficial::nsync::nsync_cpp)
    endif()
@@ -177,7 +177,7 @@ index 8839dbc8f..acdb8a1ee 100644
  
  if (NOT onnxruntime_MINIMAL_BUILD)
 -    onnxruntime_fetchcontent_makeavailable(onnx)
-+  find_package(ONNX CONFIGS REQUIRED)
++  find_package(ONNX CONFIG REQUIRED)
 +  add_library(onnx ALIAS ONNX::onnx)
 +  add_library(onnx_proto ALIAS ONNX::onnx_proto)
  else()

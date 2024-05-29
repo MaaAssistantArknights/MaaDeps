@@ -22,7 +22,7 @@ index 1295eab..0fb9f17 100644
 -list(APPEND CMAKE_PREFIX_PATH "@PROTOBUF_DIR@")
 -set(Protobuf_INCLUDE_DIR "@PROTOBUF_INCLUDE_DIR@")
 -find_package(Protobuf REQUIRED)
-+find_package(Protobuf CONFIGS REQUIRED)
++find_package(Protobuf CONFIG REQUIRED)
  
  # import targets
  include ("${CMAKE_CURRENT_LIST_DIR}/ONNXTargets.cmake")
