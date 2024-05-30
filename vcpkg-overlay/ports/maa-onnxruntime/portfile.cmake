@@ -45,7 +45,7 @@ vcpkg_cmake_configure(
     "-Donnxruntime_ENABLE_LTO=ON"
 )
 vcpkg_cmake_install()
-vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/onnxruntime)
+vcpkg_cmake_config_fixup(PACKAGE_NAME onnxruntime CONFIG_PATH lib/cmake/onnxruntime)
 vcpkg_fixup_pkgconfig()
 vcpkg_copy_pdbs()
 
