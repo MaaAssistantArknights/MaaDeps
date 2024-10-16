@@ -1,6 +1,6 @@
 {
   "name": "directml-bin",
-  "version": "1.14.1",
+  "version": "1.15.2",
   "port-version": 1,
   "description": "DirectML (standalone)",
   "homepage": "https://www.nuget.org/packages/Microsoft.AI.DirectML",
