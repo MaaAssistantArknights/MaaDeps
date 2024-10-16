@@ -80,8 +80,8 @@ jobs:
           echo "$(brew --prefix)/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
           echo "$(brew --prefix)/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
 
-          brew unlink python
-          brew link --overwrite python
+        #   brew unlink python
+        #   brew link --overwrite python
 
       - uses: actions/cache@v3
         with:
