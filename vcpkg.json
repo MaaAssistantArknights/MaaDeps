@@ -37,7 +37,6 @@
     "boost-core",
     "boost-dll",
     "boost-process",
-    "boost-uuid",
-    "cppzmq"
+    "boost-uuid"
   ]
 }
