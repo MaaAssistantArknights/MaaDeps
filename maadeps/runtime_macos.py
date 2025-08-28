@@ -3,6 +3,7 @@ import subprocess
 
 exclude = [
     "*onnxruntime_providers_shared*",
+    "*opencv_img_hash*",
 ]
 
 
@@ -12,6 +13,7 @@ def set_rpath(file, rpath):
 
 def split_debug(file, debug_file):
     subprocess.check_call(["dsymutil", file, "-o", debug_file])
+    subprocess.check_call(["strip", "-x", "-S", file])
 
 
 def is_macho(file):

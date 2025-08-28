@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO MaaAssistantArknights/FastDeploy
-    REF 2896b6d3641c18218209c496ea149a773373fa8b
-    SHA512 2d8a9072763b9ccf7968dd43aa0077fcf45659caa1f90db7af6b1cbf7a74872729625a74faefee09b655ff9ec17fe9f589935335f3c393412e9e9b93feef8a1f
+    REPO MaaXYZ/FastDeploy
+    REF e962983da6daba7d0c12f6bf5f8ff7173be70982
+    SHA512 49a21a96a7858b46ef36298c1cf23848ac3eff4079f4371c10de3c0fe72fb24c0d5dc911227ed9ce162bc9541f6166866ea0b52901122014e1ca329da684f488
 )
 
 vcpkg_cmake_configure(
@@ -10,6 +10,7 @@ vcpkg_cmake_configure(
 )
 
 vcpkg_cmake_install()
+vcpkg_cmake_config_fixup(PACKAGE_NAME fastdeploy_ppocr CONFIG_PATH share/fastdeploy_ppocr)
 
 file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
