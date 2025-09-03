@@ -1,9 +1,8 @@
 {
   "name": "maa-fastdeploy",
-  "version": "2024-05-29",
-  "port-version": 1,
-  "description": "derp learning routines",
-  "homepage": "https://github.com/MaaAssistantArknights/FastDeploy",
+  "version": "1.0.7",
+  "port-version": 7,
+  "homepage": "https://github.com/PaddlePaddle/FastDeploy",
   "license": "Apache-2.0",
   "supports": "!uwp",
   "dependencies": [
@@ -15,6 +14,10 @@
     "maa-onnxruntime",
     {
       "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
       "host": true
     }
   ]

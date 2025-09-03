@@ -1,12 +1,15 @@
 import os
+import sys
 from pathlib import Path
 import subprocess
 import shutil
 from .common import resdir
 from . import runtime_linux as linux
+from .vcpkg import triplet
 
 exclude = [
     "*onnxruntime_providers_shared*",
+    "*opencv_img_hash*",
 ]
 
 def set_rpath(file, rpath):
@@ -46,3 +49,24 @@ def install_runtime(target, debug):
             install_file(file, target_path)
             set_rpath(target_path, '$ORIGIN')
             split_debug(target_path, Path(debug, target_path.name + '.debug'))
+
+
+    print("Installing libc++_shared.so for Android")
+    android_ndk = os.environ.get("ANDROID_NDK_HOME", "/opt/android-ndk")
+
+    if sys.platform == "win32" or sys.platform == "cygwin":
+        host = "windows-x86_64"
+    elif sys.platform == "linux":
+        host = "linux-x86_64"
+    elif sys.platform == "darwin":
+        host = "darwin-x86_64"
+
+    if "arm64" in triplet:
+        runtime = "aarch64-linux-android"
+    elif "arm" in triplet:
+        runtime = "arm-linux-androideabi"
+    elif "x64" in triplet:
+        runtime = "x86_64-linux-android"
+
+    libcxx_shared = os.path.join(android_ndk, f"toolchains/llvm/prebuilt/{host}/sysroot/usr/lib/{runtime}/libc++_shared.so")
+    install_file(libcxx_shared, target / "libc++_shared.so")

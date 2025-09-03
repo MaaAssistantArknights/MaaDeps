@@ -1,42 +1,42 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "maa-meta",
-  "version": "2023-04-23",
-  "description": "meta manifest that tracks dependencies for MAA",
-  "homepage": "https://github.com/MaaAssistantArknights/MaaDeps",
+  "version": "2.7.1",
+  "description": "meta manifest that tracks dependencies for MaaFramework",
+  "homepage": "https://github.com/MaaXYZ/MaaDeps",
   "license": null,
   "dependencies": [
     {
       "name": "opencv",
       "default-features": false,
-      "features": [
-        "eigen",
-        "jpeg",
-        "png",
-        "tiff",
-        "world"
-      ]
+      "features": ["eigen", "jpeg", "png", "tiff", "calib3d", "world"]
     },
     {
       "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
       "name": "opencv4",
       "default-features": false,
-      "features": [
-        "eigen",
-        "jpeg",
-        "png",
-        "tiff",
-        "world"
-      ]
+      "features": ["eigen", "jpeg", "png", "tiff", "calib3d", "world"]
+    },
+    {
+      "name": "maa-onnxruntime",
+      "platform": "windows",
+      "features": ["directml"]
+    },
+    {
+      "name": "maa-onnxruntime",
+      "platform": "osx",
+      "features": ["coreml"]
+    },
+    {
+      "name": "maa-onnxruntime",
+      "platform": "linux"
     },
     "maa-fastdeploy",
     "zlib",
-    "asio",
-    {
-      "name": "range-v3",
-      "platform": "osx | android"
-    },
-    "cpr",
-    "ms-gsl"
+    "boost-asio",
+    "boost-core",
+    "boost-dll",
+    "boost-process",
+    "boost-uuid"
   ]
 }

@@ -2,7 +2,6 @@ name: build
 
 on:
   push:
-    tags: "*"
   workflow_dispatch:
     inputs:
       use-cache:
@@ -42,11 +41,28 @@ jobs:
 
       - name: Windows runner hack (2)
         if: runner.os == 'Windows'
-        uses: al-cheb/configure-pagefile-action@v1.2
+        uses: al-cheb/configure-pagefile-action@v1.3
         with:
           minimum-size: 16GB
           maximum-size: 16GB
           disk-root: "D:"
+
+      # - name: Free Disk Space (Ubuntu) for cuda
+      #   if: (runner.os == 'Linux') && (!contains(matrix.arch, 'android'))
+      #   uses: jlumbroso/free-disk-space@main
+      #   with:
+      #     # this might remove tools that are actually needed,
+      #     # if set to "true" but frees about 6 GB
+      #     tool-cache: false
+          
+      #     # all of these default to true, but feel free to set to
+      #     # "false" if necessary for your workflow
+      #     android: true
+      #     dotnet: true
+      #     haskell: true
+      #     large-packages: true
+      #     docker-images: true
+      #     swap-storage: true
 
       - uses: actions/checkout@v3
         with:
@@ -57,24 +73,55 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf nasm
+          sudo apt-get install -y autoconf automake autoconf-archive
 
-      - name: Install Cross-Compiler for Linux
-        if: runner.os == 'Linux' && matrix.arch == 'arm64'
+      - name: Install llvm 20
+        if: runner.os == 'Linux' && !contains(matrix.arch, 'android')
         run: |
-          sudo apt install crossbuild-essential-arm64
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 20 all
 
+      # - name: Install Cross-Compiler for Linux
+      #   if: runner.os == 'Linux' && matrix.arch == 'arm64'
+      #   run: |
+      #     sudo apt install crossbuild-essential-arm64
+
+      - name: Fetch toolchains
+        if: runner.os == 'Linux' && !contains(matrix.arch, 'android')
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 linux-toolchain-download.py ${{ matrix.arch }}
+
+      # - uses: Jimver/cuda-toolkit@v0.2.18
+      #   if: (runner.os == 'Linux' || runner.os == 'Windows') && (!contains(matrix.arch, 'android'))
+      #   id: cuda-toolkit
+      #   with:
+      #     log-file-suffix: '${{ matrix.arch }}-${{ runner.os }}.txt'
+    
       - uses: nttld/setup-ndk@v1
         if: contains(matrix.arch, 'android')
         id: setup-ndk
         with:
-          ndk-version: r26d
+          ndk-version: r27c
           add-to-path: false
+
+      # https://github.com/android/ndk/issues/2032#issuecomment-2274923977
+      # - name: Fix ndk r27
+      #   if: contains(matrix.arch, 'android')
+      #   run: |
+      #     FLAGS_PATH=${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/flags.cmake
+      #     FLAGS_CONTENT=$(cat $FLAGS_PATH)
+      #     echo -e "cmake_policy(PUSH)\ncmake_policy(SET CMP0057 NEW)\n\n${FLAGS_CONTENT}\n\ncmake_policy(POP)\n" > $FLAGS_PATH
+      #     cat $FLAGS_PATH
 
       - name: Install Packages on MacOS
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install ccache ninja pkg-config nasm
+          brew install ccache ninja pkg-config nasm bison
+          brew install autoconf automake autoconf-archive
 
           brew install bash gnu-sed gnu-tar
           echo "$(brew --prefix)/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
@@ -144,14 +191,16 @@ jobs:
             echo "TARGET=${{ matrix.arch }}-${OS}" >> $GITHUB_ENV
           fi
 
-      - name: Set OBJCOPY for arm64-linux
-        if: matrix.arch == 'arm64' && matrix.os == 'ubuntu'
+      - name: Set OBJCOPY
+        if: runner.os == 'Linux' && !contains(matrix.arch, 'android')
         run: |
-          echo "OBJCOPY=aarch64-linux-gnu-objcopy" >> $GITHUB_ENV
+          ARCH=${{ matrix.arch == 'x64' && 'x86_64' || 'aarch64' }}
+          echo "OBJCOPY=`pwd`/x-tools/$ARCH-linux-gnu/bin/$ARCH-linux-gnu-objcopy" >> $GITHUB_ENV
 
       - name: Build MaaDeps
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          # CUDAToolkit_ROOT: ${{ steps.cuda-toolkit.outputs.CUDA_PATH }}
         run: |
           for attempt in 1 2 3
           do
@@ -166,7 +215,7 @@ jobs:
           done
 
       - name: Collect Logs
-        if: always() 
+        if: always()
         run: |
           shopt -s globstar
           tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log
