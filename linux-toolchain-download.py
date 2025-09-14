@@ -123,23 +123,28 @@ def main():
             return architecture
         return None
     toolchain_asset = None
+    llvm_asset = None
     for asset in release["assets"]:
+        if (asset["name"].endswith("llvm.tar.xz")):
+            llvm_asset = asset
+            continue
         arch = split_asset_name(asset["name"])
         if arch == target_arch:
             toolchain_asset = asset
-    if toolchain_asset:
+    if toolchain_asset and llvm_asset:
         print("found assets:")
         print("    " + toolchain_asset["name"])
+        print("    " + llvm_asset["name"])
         download_dir.mkdir(parents=True, exist_ok=True)
-        for asset in [toolchain_asset]:
+        os.system(f'rm -rf {maadeps_dir}/x-tools')
+        for asset in [toolchain_asset, llvm_asset]:
             url = asset['browser_download_url']
             print("downloading from", url)
             local_file = download_dir / sanitize_filename(asset["name"])
             urllib.request.urlretrieve(url, local_file, reporthook=ProgressHook())
             print("extracting", asset["name"])
-            os.system(f'rm -rf {maadeps_dir}/x-tools')
             shutil.unpack_archive(local_file, maadeps_dir)
-            os.system(f'chmod -R +w {maadeps_dir}/x-tools')
+        os.system(f'chmod -R +w {maadeps_dir}/x-tools')
     else:
         raise Exception(f"no binary release found for {target_arch}")
 

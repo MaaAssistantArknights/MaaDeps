@@ -78,6 +78,13 @@ def sdk_tarball():
         "./maadeps.cmake",
     ]
 
+    if 'linux' in session.target:
+        extra_files += [
+            *glob.glob("./cmake/*"),
+            *glob.glob("./x-tools/*"),
+            "linux-toolchain-download.py"
+        ]
+
     if 'windows' in session.target:
         def sdk_filter(info: tarfile.TarInfo):
             if info.name.endswith(".pdb"):

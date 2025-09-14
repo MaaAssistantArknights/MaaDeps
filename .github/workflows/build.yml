@@ -75,13 +75,6 @@ jobs:
           sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf nasm
           sudo apt-get install -y autoconf automake autoconf-archive
 
-      - name: Install llvm 20
-        if: runner.os == 'Linux' && !contains(matrix.arch, 'android')
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 20 all
-
       # - name: Install Cross-Compiler for Linux
       #   if: runner.os == 'Linux' && matrix.arch == 'arm64'
       #   run: |
@@ -104,7 +97,7 @@ jobs:
         if: contains(matrix.arch, 'android')
         id: setup-ndk
         with:
-          ndk-version: r27c
+          ndk-version: r27d
           add-to-path: false
 
       # https://github.com/android/ndk/issues/2032#issuecomment-2274923977
@@ -127,8 +120,24 @@ jobs:
           echo "$(brew --prefix)/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
           echo "$(brew --prefix)/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
 
+          brew uninstall cmake
+
         #   brew unlink python
         #   brew link --overwrite python
+
+      - name: Install cmake on MacOS
+        if: runner.os == 'macOS'
+        run: |
+          wget -q https://github.com/Kitware/CMake/releases/download/v3.31.8/cmake-3.31.8-macos-universal.tar.gz
+          tar zxvf cmake-3.31.8-macos-universal.tar.gz
+          mv cmake-3.31.8-macos-universal/CMake.app .
+          rmdir cmake-3.31.8-macos-universal
+          echo "PATH=`pwd`/CMake.app/Contents/bin:$PATH" >> $GITHUB_ENV
+      
+      - name: Check cmake on MacOS
+        if: runner.os == 'macOS'
+        run: |
+          cmake --version
 
       - uses: actions/cache@v3
         with:
@@ -194,8 +203,7 @@ jobs:
       - name: Set OBJCOPY
         if: runner.os == 'Linux' && !contains(matrix.arch, 'android')
         run: |
-          ARCH=${{ matrix.arch == 'x64' && 'x86_64' || 'aarch64' }}
-          echo "OBJCOPY=`pwd`/x-tools/$ARCH-linux-gnu/bin/$ARCH-linux-gnu-objcopy" >> $GITHUB_ENV
+          echo "OBJCOPY=`pwd`/x-tools/llvm/bin/llvm-objcopy" >> $GITHUB_ENV
 
       - name: Build MaaDeps
         env:
