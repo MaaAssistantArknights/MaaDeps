@@ -32,7 +32,10 @@
       "platform": "linux"
     },
     "maa-fastdeploy",
-    "ncnn",
+    {
+      "name": "ncnn",
+      "platform": "android"
+    },
     "zlib",
     "boost-asio",
     "boost-core",
