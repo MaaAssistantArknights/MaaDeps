@@ -32,6 +32,7 @@
       "platform": "linux"
     },
     "maa-fastdeploy",
+    "ncnn",
     "zlib",
     "boost-asio",
     "boost-core",
