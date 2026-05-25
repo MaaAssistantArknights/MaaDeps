@@ -27,14 +27,23 @@ jobs:
           ndk-version: r27d
           add-to-path: false
 
+      - name: Setup ccache
+        uses: Chocobo1/setup-ccache-action@v1
+
       - uses: actions/cache@v3
         with:
           path: |
             vcpkg/downloads/
-          key: cache-downloads-ncnn-android-arm64-${{ hashfiles('vcpkg-overlay', 'vcpkg*.json') }}
+            ~/.cache/ccache/
+          key: cache-ncnn-android-arm64-${{ hashfiles('vcpkg-overlay', 'vcpkg*.json') }}
+          restore-keys: |
+            cache-ncnn-android-arm64-
 
-      - name: Setup ccache
-        uses: Chocobo1/setup-ccache-action@v1
+      - uses: actions/cache@v3
+        with:
+          path: |
+            vcpkg/installed/maa-arm64-android/
+          key: cache-installed-ncnn-android-arm64-${{ hashfiles('vcpkg-overlay', 'vcpkg*.json') }}
 
       - name: Build ncnn
         env:
