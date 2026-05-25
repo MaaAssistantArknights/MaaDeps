@@ -9,7 +9,7 @@ on:
 jobs:
   test-ncnn:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 720
     steps:
       - uses: actions/checkout@v3
         with:
@@ -45,11 +45,20 @@ jobs:
             vcpkg/installed/maa-arm64-android/
           key: cache-installed-ncnn-android-arm64-${{ hashfiles('vcpkg-overlay', 'vcpkg*.json') }}
 
-      - name: Build ncnn
+      - name: Build MaaDeps
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
-          python3 build.py --target maa-arm64-android -- $MAA_CMAKE_ARGS
+          for attempt in 1 2 3
+          do
+            python3 build.py --tarball --target maa-arm64-android -- $MAA_CMAKE_ARGS && break
+            shopt -s globstar nullglob
+            df -lh
+            rm -f vcpkg/buildtrees/**/*.{o,obj,a,lib}
+            df -lh
+            du -sh vcpkg/buildtrees/*
+            [[ $attempt != 3 ]]
+          done
 
       - name: Verify ncnn artifacts
         run: |
@@ -83,3 +92,9 @@ jobs:
         with:
           name: logs-ncnn-arm64-android
           path: logs.tar
+
+      - name: Upload Tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: tarball-arm64-android
+          path: tarball
