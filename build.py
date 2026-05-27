@@ -26,18 +26,10 @@ def main():
     vcpkg_install()
     runtime.sdk_ready()
     runtime.install_runtime()
-    clean_buildtrees()
 
     if session.enable_tarball:
         bin_tarball()
         sdk_tarball()
-
-@task
-def clean_buildtrees():
-    if sys.platform != "win32":
-        return
-    import shutil
-    shutil.rmtree(os.path.join(basedir, "vcpkg", "buildtrees"), ignore_errors=True)
 
 @task
 def clean():
