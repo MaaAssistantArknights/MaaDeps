@@ -1,0 +1,83 @@
+From d439c304657db8bcf25d8b015e803329b67617f8 Mon Sep 17 00:00:00 2001
+From: Changming Sun <chasun@microsoft.com>
+Date: Mon, 6 Jan 2025 09:21:52 -0800
+Subject: [PATCH 1/2] protobuf
+
+---
+ onnxruntime/core/graph/graph.cc | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/onnxruntime/core/graph/graph.cc b/onnxruntime/core/graph/graph.cc
+index 0b6610db5e007..75cc46277db19 100644
+--- a/onnxruntime/core/graph/graph.cc
++++ b/onnxruntime/core/graph/graph.cc
+@@ -1286,12 +1286,14 @@ Graph::Graph(const Model& owning_model,
+       ORT_ENFORCE(p.second, "Duplicate sparse_tensor_initializer: '", tensor->name(), "' Model is invalid.");
+     }
+ 
++#if GOOGLE_PROTOBUF_VERSION < 5026000
+     // Remove sparse_initializers from protobuf to save memory as they are converted to dense now
+     graph_proto_->mutable_sparse_initializer()->Clear();
+     const int sparse_num_cleared = graph_proto_->sparse_initializer().ClearedCount();
+     for (int i = 0; i < sparse_num_cleared; ++i) {
+       delete graph_proto_->mutable_sparse_initializer()->ReleaseCleared();
+     }
++#endif
+   }
+ #endif
+ 
+@@ -3646,7 +3648,7 @@ void Graph::CleanAllInitializedTensors() noexcept {
+ #if !defined(DISABLE_SPARSE_TENSORS)
+   sparse_tensor_names_.clear();
+ #endif
+-
++#if GOOGLE_PROTOBUF_VERSION < 5026000
+   // Clearing RepeatedPtrFields does not free objects' memory. The memory is retained
+   // and can be reused. Need to explicitly release the cleared objects and free the
+   // memory.
+@@ -3655,6 +3657,7 @@ void Graph::CleanAllInitializedTensors() noexcept {
+   for (int i = 0; i < num_cleared; i++) {
+     delete graph_proto_->mutable_initializer()->ReleaseCleared();
+   }
++#endif
+ }
+ 
+ const ONNX_NAMESPACE::TensorProto* Graph::GetConstantInitializer(const std::string& initializer_name,
+
+From 1d2d82f52d65f977ad3f2529a2c19cc048dd39ba Mon Sep 17 00:00:00 2001
+From: Changming Sun <chasun@microsoft.com>
+Date: Mon, 6 Jan 2025 10:56:06 -0800
+Subject: [PATCH 2/2] Add Clear() back
+
+---
+ onnxruntime/core/graph/graph.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/onnxruntime/core/graph/graph.cc b/onnxruntime/core/graph/graph.cc
+index 75cc46277db19..9fee3e49dc0d2 100644
+--- a/onnxruntime/core/graph/graph.cc
++++ b/onnxruntime/core/graph/graph.cc
+@@ -1286,9 +1286,9 @@ Graph::Graph(const Model& owning_model,
+       ORT_ENFORCE(p.second, "Duplicate sparse_tensor_initializer: '", tensor->name(), "' Model is invalid.");
+     }
+ 
+-#if GOOGLE_PROTOBUF_VERSION < 5026000
+     // Remove sparse_initializers from protobuf to save memory as they are converted to dense now
+     graph_proto_->mutable_sparse_initializer()->Clear();
++#if GOOGLE_PROTOBUF_VERSION < 5026000
+     const int sparse_num_cleared = graph_proto_->sparse_initializer().ClearedCount();
+     for (int i = 0; i < sparse_num_cleared; ++i) {
+       delete graph_proto_->mutable_sparse_initializer()->ReleaseCleared();
+@@ -3648,11 +3648,11 @@ void Graph::CleanAllInitializedTensors() noexcept {
+ #if !defined(DISABLE_SPARSE_TENSORS)
+   sparse_tensor_names_.clear();
+ #endif
+-#if GOOGLE_PROTOBUF_VERSION < 5026000
+   // Clearing RepeatedPtrFields does not free objects' memory. The memory is retained
+   // and can be reused. Need to explicitly release the cleared objects and free the
+   // memory.
+   graph_proto_->mutable_initializer()->Clear();
++#if GOOGLE_PROTOBUF_VERSION < 5026000
+   const int num_cleared = graph_proto_->initializer().ClearedCount();
+   for (int i = 0; i < num_cleared; i++) {
+     delete graph_proto_->mutable_initializer()->ReleaseCleared();
