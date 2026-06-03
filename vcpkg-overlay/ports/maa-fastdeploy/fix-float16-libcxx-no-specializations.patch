@@ -1,0 +1,18 @@
+--- a/fastdeploy/core/float16.h
++++ b/fastdeploy/core/float16.h
+@@ -571,10 +571,11 @@
+ 
+ namespace std {
+ 
+-#if defined(__linux__) && !defined(__ANDROID__) && defined(_LIBCPP_VERSION)
+-
+-// TODO: 看看是怎么一回事
+-// clang + libc++ 在 linux 下无法编译下面的代码
++// Skip std:: trait specializations where libc++ forbids user specializations:
++// - non-Android Linux with libc++ (original guard)
++// - Android with LLVM 19+ libc++ (NDK r28+), which adds _LIBCPP_NO_SPECIALIZATIONS
++#if (defined(__linux__) && !defined(__ANDROID__) && defined(_LIBCPP_VERSION)) || \
++    (defined(__ANDROID__) && defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 190000)
+ 
+ #else
+ 
