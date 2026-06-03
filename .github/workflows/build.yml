@@ -97,17 +97,8 @@ jobs:
         if: contains(matrix.arch, 'android')
         id: setup-ndk
         with:
-          ndk-version: r27d
+          ndk-version: r29
           add-to-path: false
-
-      # https://github.com/android/ndk/issues/2032#issuecomment-2274923977
-      # - name: Fix ndk r27
-      #   if: contains(matrix.arch, 'android')
-      #   run: |
-      #     FLAGS_PATH=${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/flags.cmake
-      #     FLAGS_CONTENT=$(cat $FLAGS_PATH)
-      #     echo -e "cmake_policy(PUSH)\ncmake_policy(SET CMP0057 NEW)\n\n${FLAGS_CONTENT}\n\ncmake_policy(POP)\n" > $FLAGS_PATH
-      #     cat $FLAGS_PATH
 
       - name: Install Packages on MacOS
         if: runner.os == 'macOS'
