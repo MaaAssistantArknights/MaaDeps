@@ -3,6 +3,8 @@ vcpkg_from_github(
     REPO MaaXYZ/FastDeploy
     REF e962983da6daba7d0c12f6bf5f8ff7173be70982
     SHA512 49a21a96a7858b46ef36298c1cf23848ac3eff4079f4371c10de3c0fe72fb24c0d5dc911227ed9ce162bc9541f6166866ea0b52901122014e1ca329da684f488
+    PATCHES
+        fix-float16-libcxx-no-specializations.patch
 )
 
 vcpkg_cmake_configure(
