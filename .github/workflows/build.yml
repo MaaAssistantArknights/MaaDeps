@@ -97,7 +97,7 @@ jobs:
         if: contains(matrix.arch, 'android')
         id: setup-ndk
         with:
-          ndk-version: r27d
+          ndk-version: r28
           add-to-path: false
 
       # https://github.com/android/ndk/issues/2032#issuecomment-2274923977
