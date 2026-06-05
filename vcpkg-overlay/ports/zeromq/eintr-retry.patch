@@ -1,10 +1,8 @@
 diff --git a/src/zmq.cpp b/src/zmq.cpp
-index 271d8049..f7a3e4d1 100644
+index e0090dc..86d7e49 100644
 --- a/src/zmq.cpp
 +++ b/src/zmq.cpp
-@@ -609,18 +609,26 @@ int zmq_msg_init_data (
- int zmq_msg_send (zmq_msg_t *msg_, void *s_, int flags_)
- {
+@@ -611,7 +611,11 @@ int zmq_msg_send (zmq_msg_t *msg_, void *s_, int flags_)
      zmq::socket_base_t *s = as_socket_base_t (s_);
      if (!s)
          return -1;
@@ -17,7 +15,7 @@ index 271d8049..f7a3e4d1 100644
  }
 
  int zmq_msg_recv (zmq_msg_t *msg_, void *s_, int flags_)
- {
+@@ -619,7 +623,11 @@ int zmq_msg_recv (zmq_msg_t *msg_, void *s_, int flags_)
      zmq::socket_base_t *s = as_socket_base_t (s_);
      if (!s)
          return -1;
@@ -30,7 +28,7 @@ index 271d8049..f7a3e4d1 100644
  }
 
  int zmq_msg_close (zmq_msg_t *msg_)
-@@ -960,7 +968,14 @@ int zmq_poll (zmq_pollitem_t *items_, int nitems_, long timeout_)
+@@ -961,7 +969,17 @@ int zmq_poll (zmq_pollitem_t *items_, int nitems_, long timeout_)
          {
              const int rc = poll (&pollfds[0], nitems_, timeout);
              if (rc == -1 && errno == EINTR) {
