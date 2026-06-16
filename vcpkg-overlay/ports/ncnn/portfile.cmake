@@ -22,6 +22,11 @@ vcpkg_cmake_configure(
         -DNCNN_BUILD_EXAMPLES=OFF
         -DNCNN_BUILD_BENCHMARK=OFF
         -DNCNN_SHARED_LIB=${BUILD_SHARED}
+        # ncnn defaults NCNN_DISABLE_RTTI/EXCEPTION to ON on Android/iOS and adds
+        # -fno-rtti/-fno-exceptions as PUBLIC compile options, forcing them onto
+        # every consumer. MaaCore needs RTTI and exceptions, so keep them enabled.
+        -DNCNN_DISABLE_RTTI=OFF
+        -DNCNN_DISABLE_EXCEPTION=OFF
 )
 
 vcpkg_cmake_install()
