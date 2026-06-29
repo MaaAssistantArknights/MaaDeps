@@ -24,7 +24,11 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ${{ matrix.os }}-latest
+    # Pin macOS to macos-15 (Apple Silicon). GitHub is rolling macos-latest over
+    # to macos-26 (Xcode 26.5 / AppleClang 21), whose libc++ marks is_pod /
+    # is_floating_point / is_signed / is_unsigned [[no_specializations]] and breaks
+    # maa-fastdeploy float16.h. Stopgap until the float16 patch covers Apple libc++>=19.
+    runs-on: ${{ matrix.os == 'macos' && 'macos-15' || format('{0}-latest', matrix.os) }}
     timeout-minutes: 720
     steps:
       - name: Windows runner hack
