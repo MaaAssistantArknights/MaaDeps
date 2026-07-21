@@ -14,3 +14,7 @@ endif()
 if (PORT STREQUAL "opencv")
     list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS -DBUILD_opencv_hdf=OFF -DBUILD_opencv_quality=OFF)
 endif ()
+
+if (PORT STREQUAL "wayland")
+  set(X_VCPKG_FORCE_VCPKG_WAYLAND_LIBRARIES ON)
+endif ()

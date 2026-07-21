@@ -7,6 +7,17 @@
   "license": null,
   "dependencies": [
     {
+      "name": "wayland",
+      "platform": "linux",
+      "features": [
+        "force-build"
+      ]
+    },
+    {
+      "name": "libxkbcommon",
+      "platform": "linux"
+    },
+    {
       "name": "opencv",
       "default-features": false,
       "features": ["eigen", "jpeg", "png", "tiff", "calib3d", "world"]

@@ -103,6 +103,7 @@ def main():
     else:
         target_arch = detect_host_arch()
     print("about to download prebuilt dependency libraries for", target_arch)
+    target_archs = target_arch.split(' ')
     # if len(sys.argv) == 1:
     #     print(f"to specify another triplet, run `{sys.argv[0]} <target triplet>`")
     #     print(f"e.g. `{sys.argv[0]} x64-windows`")
@@ -122,22 +123,25 @@ def main():
         if architecture in { 'x64', 'arm64' }:
             return architecture
         return None
-    toolchain_asset = None
+    toolchain_assets = []
     llvm_asset = None
     for asset in release["assets"]:
         if (asset["name"].endswith("llvm.tar.xz")):
             llvm_asset = asset
             continue
         arch = split_asset_name(asset["name"])
-        if arch == target_arch:
-            toolchain_asset = asset
-    if toolchain_asset and llvm_asset:
+        if arch in target_archs:
+            toolchain_assets.append(asset)
+    if len(toolchain_assets) > 0 and llvm_asset:
         print("found assets:")
-        print("    " + toolchain_asset["name"])
+        for toolchain_asset in toolchain_assets:
+            print("    " + toolchain_asset["name"])
         print("    " + llvm_asset["name"])
         download_dir.mkdir(parents=True, exist_ok=True)
         os.system(f'rm -rf {maadeps_dir}/x-tools')
-        for asset in [toolchain_asset, llvm_asset]:
+        all_assets = toolchain_assets.copy()
+        all_assets.append(llvm_asset)
+        for asset in all_assets:
             url = asset['browser_download_url']
             print("downloading from", url)
             local_file = download_dir / sanitize_filename(asset["name"])
