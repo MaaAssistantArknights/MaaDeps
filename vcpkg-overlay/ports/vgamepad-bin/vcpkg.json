@@ -1,0 +1,9 @@
+{
+  "name": "vgamepad-bin",
+  "version": "0.1.0",
+  "description": "Binary redistribution of ViGEmClient.dll from vgamepad PyPI source distribution",
+  "homepage": "https://pypi.org/project/vgamepad/#files",
+  "license": "MIT",
+  "supports": "windows & (x64 | x86)"
+}
+
