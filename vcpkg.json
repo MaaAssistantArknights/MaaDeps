@@ -20,16 +20,12 @@
     {
       "name": "maa-onnxruntime",
       "platform": "windows",
-      "features": ["directml"]
+      "features": ["directml", "webgpu"]
     },
     {
       "name": "maa-onnxruntime",
-      "platform": "osx",
-      "features": ["coreml"]
-    },
-    {
-      "name": "maa-onnxruntime",
-      "platform": "linux"
+      "platform": "!windows",
+      "features": ["webgpu"]
     },
     "maa-fastdeploy",
     {

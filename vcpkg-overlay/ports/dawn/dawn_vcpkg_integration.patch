@@ -1,0 +1,115 @@
+diff -ru a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt    2026-08-18 12:39:42.000000000 +0800
++++ b/CMakeLists.txt 2026-08-18 19:44:06.884779690 +0800
+@@ -130,6 +130,8 @@
+     set(BUILD_SAMPLES ON)
+ endif()
+ 
++option(DAWN_ENABLE_VCPKG "Enable vcpkg integration" OFF)
++
+ option(DAWN_ENABLE_ASAN "Enable address sanitizer" OFF)
+ option(DAWN_ENABLE_INSTALL "Enable install step for Dawn libraries" OFF)
+ option(DAWN_ENABLE_TSAN "Enable thread sanitizer" OFF)
+@@ -495,7 +497,21 @@
+ ################################################################################
+ # Run on all subdirectories
+ ################################################################################
+-add_subdirectory(third_party)
++if (DAWN_ENABLE_VCPKG)
++  find_package(absl REQUIRED)
++  find_package(VulkanHeaders CONFIG REQUIRED)
++  find_package(VulkanUtilityLibraries CONFIG REQUIRED)
++  find_package(SPIRV-Headers REQUIRED)
++  add_library(SPIRV-Headers ALIAS SPIRV-Headers::SPIRV-Headers)
++  find_package(SPIRV-Tools REQUIRED)
++  if (NOT TARGET SPIRV-Tools AND TARGET SPIRV-Tools-static)
++    add_library(SPIRV-Tools ALIAS SPIRV-Tools-static)
++  endif()
++  if (DAWN_USE_BUILT_DXC)
++    find_package(directx-dxc CONFIG REQUIRED)
++  endif()
++  add_subdirectory(third_party)
++endif()
+ 
+ # TODO(crbug.com/tint/455): Tint does not currently build with CMake when
+ # BUILD_SHARED_LIBS=1, so always build it as static for now.
+diff -ru a/src/dawn/native/CMakeLists.txt b/src/dawn/native/CMakeLists.txt
+--- a/src/dawn/native/CMakeLists.txt    2026-08-18 12:39:42.000000000 +0800
++++ b/src/dawn/native/CMakeLists.txt 2026-08-18 19:44:06.884961290 +0800
+@@ -984,7 +984,9 @@
+     if (DAWN_USE_BUILT_DXC)
+         target_compile_definitions(dawn_native PRIVATE "DAWN_USE_BUILT_DXC")
+         target_compile_definitions(dawn_native_objects PRIVATE "DAWN_USE_BUILT_DXC")
+-        add_dependencies(dawn_native copy_dxil_dll)
++        if (NOT DAWN_ENABLE_VCPKG)
++            add_dependencies(dawn_native copy_dxil_dll)
++        endif()
+     endif()
+     if (DAWN_USE_AGILITY_SDK)
+         target_compile_definitions(dawn_native PRIVATE "DAWN_USE_AGILITY_SDK")
+@@ -1115,7 +1117,11 @@
+ # They happen because dxcompiler is declared a shared library and bundle_libraries
+ # doesn't work well with shared libs
+ if (DAWN_USE_BUILT_DXC)
+-    target_link_libraries(dawn_native PRIVATE dxcompiler)
++    if (DAWN_ENABLE_VCPKG)
++        target_link_libraries(dawn_native PRIVATE Microsoft::DirectXShaderCompiler)
++    else()
++        target_link_libraries(dawn_native PRIVATE dxcompiler)
++    endif()
+ endif()
+ 
+ # Copy d3dcompiler_47.dll from Windows SDK when not using system component loading
+Only in b/src/dawn/native: CMakeLists.txt.orig
+diff -ru a/src/tint/CMakeLists.txt b/src/tint/CMakeLists.txt
+--- a/src/tint/CMakeLists.txt   2026-08-18 12:39:42.000000000 +0800
++++ b/src/tint/CMakeLists.txt        2026-08-18 19:44:06.885080754 +0800
+@@ -221,13 +221,21 @@
+ endfunction()
+ 
+ function(tint_spvheaders_compile_options TARGET)
+-  target_link_libraries(${TARGET} PRIVATE SPIRV-Headers)
+-  target_include_directories(${TARGET} PRIVATE "${TINT_SPIRV_HEADERS_DIR}/include")
++  if (DAWN_ENABLE_VCPKG)
++    target_link_libraries(${TARGET} PRIVATE SPIRV-Headers::SPIRV-Headers)
++  else ()
++    target_link_libraries(${TARGET} PRIVATE SPIRV-Headers)
++    target_include_directories(${TARGET} PRIVATE "${TINT_SPIRV_HEADERS_DIR}/include")
++  endif()
+ endfunction()
+ 
+ function(tint_spvtools_compile_options TARGET)
+-  target_link_libraries(${TARGET} PRIVATE SPIRV-Tools)
+-  target_include_directories(${TARGET} PRIVATE "${TINT_SPIRV_TOOLS_DIR}/include")
++  if (DAWN_ENABLE_VCPKG)
++    target_link_libraries(${TARGET} PRIVATE SPIRV-Tools-static)
++  else ()
++    target_link_libraries(${TARGET} PRIVATE SPIRV-Tools)
++    target_include_directories(${TARGET} PRIVATE "${TINT_SPIRV_TOOLS_DIR}/include")
++  endif()
+ endfunction()
+ 
+ function(tint_lib_compile_options TARGET)
+@@ -587,12 +595,16 @@
+       target_link_libraries(${TARGET} PRIVATE
+         SPIRV-Tools-opt
+       )
+-      target_include_directories(${TARGET} PRIVATE
+-        "${TINT_SPIRV_TOOLS_DIR}"
+-        "${TINT_SPIRV_TOOLS_DIR}/include"
+-        "${TINT_SPIRV_TOOLS_DIR}/source"
+-        "${spirv-tools_BINARY_DIR}"
+-      )
++      if (DAWN_ENABLE_VCPKG)
++        target_link_libraries(${TARGET} PRIVATE SPIRV-Tools-static)
++      else ()
++        target_include_directories(${TARGET} PRIVATE
++          "${TINT_SPIRV_TOOLS_DIR}"
++          "${TINT_SPIRV_TOOLS_DIR}/include"
++          "${TINT_SPIRV_TOOLS_DIR}/source"
++          "${spirv-tools_BINARY_DIR}"
++        )
++      endif()
+     elseif(${DEPENDENCY} STREQUAL "thread")
+       find_package(Threads REQUIRED)
+       target_link_libraries(${TARGET} PRIVATE Threads::Threads)
