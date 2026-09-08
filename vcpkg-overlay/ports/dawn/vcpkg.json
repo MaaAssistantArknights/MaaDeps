@@ -1,7 +1,7 @@
 {
   "name": "dawn",
   "version-string": "v20260817.213942",
-  "port-version": 2,
+  "port-version": 3,
   "description": "Dawn, a native WebGPU implementation.",
   "homepage": "https://dawn.googlesource.com/dawn",
   "license": "BSD-3-Clause",

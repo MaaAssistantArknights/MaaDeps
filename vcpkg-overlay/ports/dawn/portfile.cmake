@@ -62,13 +62,7 @@ if (NOT VCPKG_TARGET_IS_EMSCRIPTEN)
 
         -DDAWN_ENABLE_SPIRV_VALIDATION=OFF
 
-        # explicitly set the jinja2 and markupsafe directories to empty strings
-        # when they are empty, the python script will import them from the system
-        #
-        # pip install jinja2 markupsafe
-        #
-        -DDAWN_JINJA2_DIR=
-        -DDAWN_MARKUPSAFE_DIR=
+
     )
 endif()
 
@@ -128,11 +122,47 @@ vcpkg_from_github(
       dawn_vcpkg_integration.patch
 )
 
+function(z_vcpkg_from_git_to_path)
+    cmake_parse_arguments(PARSE_ARGV 0 arg "" "OUT_SOURCE_PATH;URL;REF" "PATCHES")
+    if(EXISTS "${arg_OUT_SOURCE_PATH}")
+        file(GLOB children LIST_DIRECTORIES true "${arg_OUT_SOURCE_PATH}/*")
+        if(NOT "${children}" STREQUAL "")
+            message(FATAL_ERROR "The path ${arg_OUT_SOURCE_PATH} already exists and is not empty.")
+        else()
+            file(REMOVE_RECURSE "${arg_OUT_SOURCE_PATH}")
+        endif()
+        unset(children)
+    endif()
+    vcpkg_from_git(
+        OUT_SOURCE_PATH out_source_path
+        URL "${arg_URL}"
+        REF "${arg_REF}"
+        PATCHES ${arg_PATCHES}
+    )
+    file(RENAME "${out_source_path}" "${arg_OUT_SOURCE_PATH}")
+    file(REMOVE_RECURSE "${out_source_path}")
+endfunction()
+
+z_vcpkg_from_git_to_path(
+    OUT_SOURCE_PATH "${SOURCE_PATH}/third_party/jinja2"
+    URL "https://chromium.googlesource.com/chromium/src/third_party/jinja2"
+    REF c3027d884967773057bf74b957e3fea87e5df4d7
+)
+
+z_vcpkg_from_git_to_path(
+    OUT_SOURCE_PATH "${SOURCE_PATH}/third_party/markupsafe"
+    URL "https://chromium.googlesource.com/chromium/src/third_party/markupsafe"
+    REF 4256084ae14175d38a3ff7d739dca83ae49ccec6
+)
+
+vcpkg_find_acquire_program(PYTHON3)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     WINDOWS_USE_MSBUILD
     OPTIONS
     ${onnxruntime_vcpkg_DAWN_OPTIONS}
+    "-DPython3_EXECUTABLE=${PYTHON3}"
 
     # MAYBE_UNUSED_VARIABLES
 )
