@@ -1,10 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO MaaXYZ/FastDeploy
-    REF e3233f2f1e5f723bb11af3b061d0e6027db5c331
-    SHA512 3f3d94059d7ace0d389afc4fb654ebac936c62beb51ac5cc47ea23927cf6606c7f91c4cba40db6d86fdceed48393eb3984b0008367aebf4df50f9311d146e426
-    PATCHES
-        fix-float16-libcxx-no-specializations.patch
+    REPO SherkeyXD/FastDeploy
+    REF f4494710a63244f11c841057680d32fdabfba956
+    SHA512 14c667ba42ad6abea32d07ca1e4a2f0e814c4c09a42b0fa5759923c48dccbc1e9b2dc24ab5ced7bd6104145e5c882d945f2054743d4e3cac921c568ea828f7ee
 )
 
 vcpkg_cmake_configure(
