@@ -31,7 +31,7 @@ def bootstrap(target_triplet=None):
     if os.path.exists(archives_dir) and "VCPKG_DEFAULT_BINARY_CACHE" not in os.environ:
         os.environ["VCPKG_DEFAULT_BINARY_CACHE"] = archives_dir
 
-    ccache_vars = "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK"
+    ccache_vars = "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK;ANDROID_CCACHE;NDK_CCACHE"
     if "VCPKG_KEEP_ENV_VARS" in os.environ:
         if "CMAKE_C_COMPILER_LAUNCHER" not in os.environ["VCPKG_KEEP_ENV_VARS"]:
             os.environ["VCPKG_KEEP_ENV_VARS"] += f";{ccache_vars}"
@@ -42,6 +42,8 @@ def bootstrap(target_triplet=None):
     if shutil.which("ccache"):
         os.environ.setdefault("CMAKE_C_COMPILER_LAUNCHER", "ccache")
         os.environ.setdefault("CMAKE_CXX_COMPILER_LAUNCHER", "ccache")
+        os.environ.setdefault("ANDROID_CCACHE", "ccache")
+        os.environ.setdefault("NDK_CCACHE", "ccache")
 
     if os.name == "nt":
         script_name = "bootstrap-vcpkg.bat"
