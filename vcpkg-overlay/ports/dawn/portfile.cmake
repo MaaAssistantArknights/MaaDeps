@@ -168,4 +168,11 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/share/dawn/cmake")
-file(RENAME "${CURRENT_PACKAGES_DIR}/lib/cmake/Dawn" "${CURRENT_PACKAGES_DIR}/share/dawn/cmake")
+file(GLOB _dawn_cmake_files "${CURRENT_PACKAGES_DIR}/lib/cmake/Dawn/*")
+file(COPY ${_dawn_cmake_files} DESTINATION "${CURRENT_PACKAGES_DIR}/share/dawn/cmake")
+file(COPY ${_dawn_cmake_files} DESTINATION "${CURRENT_PACKAGES_DIR}/share/dawn")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/lib/cmake")
+if(EXISTS "${CURRENT_PACKAGES_DIR}/debug/lib/cmake")
+    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/lib/cmake")
+endif()
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
