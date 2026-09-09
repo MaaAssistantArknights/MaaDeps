@@ -27,6 +27,10 @@ def bootstrap(target_triplet=None):
     os.environ["VCPKG_OVERLAY_TRIPLETS"] = os.path.join(basedir, "vcpkg-overlay", "triplets")
     os.environ["VCPKG_OVERLAY_PORTS"] = os.path.join(basedir, "vcpkg-overlay", "ports")
 
+    archives_dir = os.path.join(root, "archives")
+    if os.path.exists(archives_dir) and "VCPKG_DEFAULT_BINARY_CACHE" not in os.environ:
+        os.environ["VCPKG_DEFAULT_BINARY_CACHE"] = archives_dir
+
     if os.name == "nt":
         script_name = "bootstrap-vcpkg.bat"
         executable_name = "vcpkg.exe"

@@ -24,6 +24,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      ENABLE_CACHE: ${{ !startsWith(github.ref, 'refs/tags/') && (github.event_name != 'workflow_dispatch' || inputs.use-cache) }}
     # Pin macOS to macos-15 (Apple Silicon). GitHub is rolling macos-latest over
     # to macos-26 (Xcode 26.5 / AppleClang 21), whose libc++ marks is_pod /
     # is_floating_point / is_signed / is_unsigned [[no_specializations]] and breaks
@@ -136,18 +138,20 @@ jobs:
             vcpkg/downloads/
           key: cache-downloads-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay', 'vcpkg*.json') }}
 
-      # no symbols if installed from binary archive
-      # - uses: actions/cache/restore@v3
-      #   if: github.event.inputs.use-cache
-      #   with:
-      #     path: |
-      #       vcpkg/archives/
-      #     key: cache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay') }}
+      - name: Cache vcpkg archives
+        if: env.ENABLE_CACHE == 'true'
+        uses: actions/cache@v6
+        with:
+          path: |
+            vcpkg/archives/
+          key: cache-archives-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay/**', 'vcpkg*.json') }}
+          restore-keys: |
+            cache-archives-${{ matrix.os }}-${{ matrix.arch }}-
 
-      # # this should work on both bash and pwsh, and giving native path on windows
-      # - run: |
-      #     mkdir -p vcpkg/archives
-      #     echo "VCPKG_DEFAULT_BINARY_CACHE=$PWD/vcpkg/archives" >> $GITHUB_ENV
+      - name: Setup binary cache directory
+        if: env.ENABLE_CACHE == 'true'
+        run: |
+          mkdir -p vcpkg/archives
 
       - uses: TheMrMilchmann/setup-msvc-dev@v4
         if: matrix.os == 'windows'
@@ -242,11 +246,3 @@ jobs:
         run: |
           gh release create "$TAG_NAME" --prerelease || true  # accept existing release
           gh release upload "$TAG_NAME" tarball/*
-
-      # - name: cache binary archives
-      #   uses: actions/cache/save@v3
-      #   if: github.event.inputs.use-cache
-      #   with:
-      #     path: |
-      #       vcpkg/archives/
-      #     key: cache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay') }}
