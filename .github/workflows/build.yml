@@ -26,6 +26,11 @@ jobs:
         shell: bash
     env:
       ENABLE_CACHE: ${{ !startsWith(github.ref, 'refs/tags/') && (github.event_name != 'workflow_dispatch' || inputs.use-cache) }}
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      VCPKG_KEEP_ENV_VARS: "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK"
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
     # Pin macOS to macos-15 (Apple Silicon). GitHub is rolling macos-latest over
     # to macos-26 (Xcode 26.5 / AppleClang 21), whose libc++ marks is_pod /
     # is_floating_point / is_signed / is_unsigned [[no_specializations]] and breaks
@@ -62,7 +67,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf nasm
+          sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf nasm ccache
           sudo apt-get install -y autoconf automake autoconf-archive
 
       - name: (Linux) Fetch toolchain and set OBJCOPY
@@ -142,7 +147,12 @@ jobs:
       - name: Setup ccache
         uses: Chocobo1/setup-ccache-action@v1
         with:
-          windows_compile_environment: msvc
+          windows_compile_environment: ${{ matrix.os == 'windows' && 'msvc' || '' }}
+          override_cache_key: ccache-${{ matrix.os }}-${{ matrix.arch }}-${{ github.sha }}
+          override_cache_key_fallback: |
+            ccache-${{ matrix.os }}-${{ matrix.arch }}-
+          ccache_options: |
+            max_size=2.0G
 
       - name: Configure target platform
         run: |
