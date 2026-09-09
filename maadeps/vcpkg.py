@@ -39,11 +39,12 @@ def bootstrap(target_triplet=None):
         os.environ["VCPKG_KEEP_ENV_VARS"] = ccache_vars
 
     import shutil
-    if shutil.which("ccache"):
-        os.environ.setdefault("CMAKE_C_COMPILER_LAUNCHER", "ccache")
-        os.environ.setdefault("CMAKE_CXX_COMPILER_LAUNCHER", "ccache")
-        os.environ.setdefault("ANDROID_CCACHE", "ccache")
-        os.environ.setdefault("NDK_CCACHE", "ccache")
+    ccache_bin = shutil.which("ccache") or os.environ.get("ccache_symlinks_path")
+    if ccache_bin:
+        os.environ.setdefault("CMAKE_C_COMPILER_LAUNCHER", ccache_bin)
+        os.environ.setdefault("CMAKE_CXX_COMPILER_LAUNCHER", ccache_bin)
+        os.environ.setdefault("ANDROID_CCACHE", ccache_bin)
+        os.environ.setdefault("NDK_CCACHE", ccache_bin)
 
     if os.name == "nt":
         script_name = "bootstrap-vcpkg.bat"
