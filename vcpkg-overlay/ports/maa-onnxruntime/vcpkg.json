@@ -1,7 +1,7 @@
 {
   "name": "maa-onnxruntime",
   "version-semver": "1.29.0",
-  "port-version": 2,
+  "port-version": 3,
   "description": "ONNX Runtime: cross-platform, high performance ML inferencing and training accelerator",
   "homepage": "https://github.com/microsoft/onnxruntime",
   "license": "MIT",
@@ -124,7 +124,11 @@
     "webgpu": {
       "description": "Build with WebGPU support",
       "dependencies": [
-        "dawn"
+        "dawn",
+        {
+          "name": "directx-dxc",
+          "platform": "windows"
+        }
       ]
     }
   }
