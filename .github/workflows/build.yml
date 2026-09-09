@@ -109,14 +109,6 @@ jobs:
           echo "PATH=$(pwd)/CMake.app/Contents/bin:$PATH" >> $GITHUB_ENV
           ./CMake.app/Contents/bin/cmake --version
 
-      - name: Cache vcpkg downloads
-        uses: actions/cache@v6
-        with:
-          path: |
-            vcpkg/downloads/
-          key: cache-downloads-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay/**', 'vcpkg*.json') }}
-          restore-keys: |
-            cache-downloads-${{ matrix.os }}-${{ matrix.arch }}-
 
       - name: Cache vcpkg binary archives
         if: env.ENABLE_CACHE == 'true'
@@ -154,7 +146,7 @@ jobs:
           override_cache_key_fallback: |
             ccache-${{ matrix.os }}-${{ matrix.arch }}-
           ccache_options: |
-            max_size=2.0G
+            max_size=1.0G
 
       - name: Configure ccache compiler launcher path
         run: |
