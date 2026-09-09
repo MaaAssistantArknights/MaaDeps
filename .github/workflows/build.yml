@@ -30,9 +30,7 @@ jobs:
         shell: bash
     env:
       ENABLE_CACHE: ${{ !startsWith(github.ref, 'refs/tags/') && (github.event_name != 'workflow_dispatch' || inputs.use-cache) }}
-      CMAKE_C_COMPILER_LAUNCHER: ccache
-      CMAKE_CXX_COMPILER_LAUNCHER: ccache
-      VCPKG_KEEP_ENV_VARS: "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK"
+      VCPKG_KEEP_ENV_VARS: "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK;ccache_symlinks_path;ANDROID_CCACHE;NDK_CCACHE"
       CCACHE_BASEDIR: ${{ github.workspace }}
       CCACHE_COMPILERCHECK: content
     # Pin macOS to macos-15 (Apple Silicon). GitHub is rolling macos-latest over
@@ -153,6 +151,17 @@ jobs:
             ccache-${{ matrix.os }}-${{ matrix.arch }}-
           ccache_options: |
             max_size=2.0G
+
+      - name: Configure ccache compiler launcher path
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            echo "CMAKE_C_COMPILER_LAUNCHER=${ccache_symlinks_path}" >> $GITHUB_ENV
+            echo "CMAKE_CXX_COMPILER_LAUNCHER=${ccache_symlinks_path}" >> $GITHUB_ENV
+          else
+            CCACHE_PATH=$(which ccache)
+            echo "CMAKE_C_COMPILER_LAUNCHER=${CCACHE_PATH}" >> $GITHUB_ENV
+            echo "CMAKE_CXX_COMPILER_LAUNCHER=${CCACHE_PATH}" >> $GITHUB_ENV
+          fi
 
       - name: Configure target platform
         run: |
