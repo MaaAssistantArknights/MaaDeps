@@ -40,17 +40,35 @@ def bootstrap(target_triplet=None):
     if not os.path.exists(os.path.join(root, executable_name)):
         subprocess.check_call([os.path.join(root, script_name), "-disableMetrics"], cwd=root)
 
+def _get_host_triplet(target_triplet):
+    if cross_compiling or (host_triplet != target_triplet.removeprefix("maa-")):
+        return host_triplet
+    return target_triplet
+
 def install(*ports, triplet=None):
     if triplet is None:
         triplet = _this_module.triplet
-    cmd = [os.path.join(root, "vcpkg"), "install"]
+    cmd = [
+        os.path.join(root, "vcpkg"),
+        "install",
+        "--host-triplet",
+        _get_host_triplet(triplet),
+    ]
     cmd.extend(port + ":" + triplet for port in ports)
     subprocess.check_call(cmd, cwd=root)
 
 def install_manifest(manifest_root, triplet=None):
     if triplet is None:
         triplet = _this_module.triplet
-    cmd = [os.path.join(root, "vcpkg"), "install", "--x-install-root=" + os.path.join(root, "installed"), "--triplet", triplet]
+    cmd = [
+        os.path.join(root, "vcpkg"),
+        "install",
+        "--x-install-root=" + os.path.join(root, "installed"),
+        "--triplet",
+        triplet,
+        "--host-triplet",
+        _get_host_triplet(triplet),
+    ]
     if sys.platform == "win32":
         cmd.append("--clean-buildtrees-after-build")
     subprocess.check_call(cmd, cwd=manifest_root)
