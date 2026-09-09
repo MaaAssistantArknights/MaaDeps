@@ -41,6 +41,8 @@ def bootstrap(target_triplet=None):
         subprocess.check_call([os.path.join(root, script_name), "-disableMetrics"], cwd=root)
 
 def _get_host_triplet(target_triplet):
+    if sys.platform.startswith("linux"):
+        return host_triplet
     if cross_compiling or (host_triplet != target_triplet.removeprefix("maa-")):
         return host_triplet
     return target_triplet
