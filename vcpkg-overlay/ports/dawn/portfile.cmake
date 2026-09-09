@@ -159,7 +159,6 @@ vcpkg_find_acquire_program(PYTHON3)
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
-    WINDOWS_USE_MSBUILD
     OPTIONS
     ${onnxruntime_vcpkg_DAWN_OPTIONS}
     "-DPython3_EXECUTABLE=${PYTHON3}"
