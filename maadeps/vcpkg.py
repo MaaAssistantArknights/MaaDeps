@@ -39,8 +39,13 @@ def bootstrap(target_triplet=None):
         os.environ["VCPKG_KEEP_ENV_VARS"] = ccache_vars
 
     import shutil
-    ccache_bin = shutil.which("ccache") or os.environ.get("ccache_symlinks_path")
-    if ccache_bin:
+    from pathlib import Path
+    ccache_bin = shutil.which("ccache")
+    if not ccache_bin and os.environ.get("ccache_symlinks_path"):
+        cand = Path(os.environ["ccache_symlinks_path"]) / ("ccache.exe" if sys.platform == "win32" else "ccache")
+        if cand.is_file():
+            ccache_bin = str(cand)
+    if ccache_bin and Path(ccache_bin).is_file():
         os.environ.setdefault("CMAKE_C_COMPILER_LAUNCHER", ccache_bin)
         os.environ.setdefault("CMAKE_CXX_COMPILER_LAUNCHER", ccache_bin)
         os.environ.setdefault("ANDROID_CCACHE", ccache_bin)

@@ -31,7 +31,7 @@ set(VCPKG_CMAKE_CONFIGURE_OPTIONS
 
 find_program(CCACHE_EXE NAMES ccache clcache PATHS "C:/ProgramData/Chocolatey/bin" "C:/ProgramData/chocolatey/lib/ccache/tools" ENV ccache_symlinks_path)
 if(NOT CCACHE_EXE AND DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER})
-  if(EXISTS "$ENV{CMAKE_C_COMPILER_LAUNCHER}")
+  if(EXISTS "$ENV{CMAKE_C_COMPILER_LAUNCHER}" AND NOT IS_DIRECTORY "$ENV{CMAKE_C_COMPILER_LAUNCHER}")
     set(CCACHE_EXE "$ENV{CMAKE_C_COMPILER_LAUNCHER}")
   endif()
 endif()

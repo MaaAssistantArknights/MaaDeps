@@ -147,10 +147,17 @@ jobs:
       - name: Configure ccache compiler launcher path
         run: |
           if [ "${{ runner.os }}" = "Windows" ]; then
-            echo "CMAKE_C_COMPILER_LAUNCHER=${ccache_symlinks_path}" >> $GITHUB_ENV
-            echo "CMAKE_CXX_COMPILER_LAUNCHER=${ccache_symlinks_path}" >> $GITHUB_ENV
+            CCACHE_BIN=$(which ccache 2>/dev/null || true)
+            if [ -z "$CCACHE_BIN" ] && [ -n "$ccache_symlinks_path" ] && [ -f "$ccache_symlinks_path/ccache.exe" ]; then
+              CCACHE_BIN="$ccache_symlinks_path/ccache.exe"
+            fi
+            if [ -n "$CCACHE_BIN" ]; then
+              CCACHE_PATH=$(cygpath -m "$CCACHE_BIN")
+            fi
           else
             CCACHE_PATH=$(which ccache)
+          fi
+          if [ -n "$CCACHE_PATH" ]; then
             echo "CMAKE_C_COMPILER_LAUNCHER=${CCACHE_PATH}" >> $GITHUB_ENV
             echo "CMAKE_CXX_COMPILER_LAUNCHER=${CCACHE_PATH}" >> $GITHUB_ENV
           fi
