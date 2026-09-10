@@ -1,0 +1,41 @@
+diff -ur a/onnxruntime/core/providers/webgpu/webgpu_context.cc b/onnxruntime/core/providers/webgpu/webgpu_context.cc
+--- a/onnxruntime/core/providers/webgpu/webgpu_context.cc
++++ b/onnxruntime/core/providers/webgpu/webgpu_context.cc
+@@ -14,10 +14,8 @@
+ #if !defined(BUILD_DAWN_SHARED_LIBRARY)
+ #include "dawn/dawn_proc.h"
+ #endif
+-#if !defined(USE_EXTERNAL_DAWN)
+ #include "dawn/native/DawnNative.h"
+ #endif
+-#endif
+ #if defined(__GNUC__)
+ #pragma GCC diagnostic pop
+ #endif
+@@ -179,7 +177,7 @@
+     // cache device queue
+     device_queue_ = device_.GetQueue();
+     // cache device limits
+-    ORT_ENFORCE(Device().GetLimits(&device_limits_));
++    ORT_ENFORCE(Device().GetLimits(&device_limits_) == wgpu::Status::Success);
+     // Align maxStorageBufferBindingSize down to minStorageBufferOffsetAlignment so that
+     // buffer segment offsets are always properly aligned for WebGPU bind group creation.
+     if (device_limits_.minStorageBufferOffsetAlignment > 0) {
+@@ -198,7 +196,7 @@
+       adapter_info_.nextInChain = &subgroup_matrix_configs_;
+     }
+ #endif
+-    ORT_ENFORCE(Device().GetAdapterInfo(&adapter_info_));
++    ORT_ENFORCE(Device().GetAdapterInfo(&adapter_info_) == wgpu::Status::Success);
+ 
+     // create buffer manager
+     buffer_mgr_ = BufferManagerFactory::Create(*this,
+@@ -756,7 +754,7 @@
+ wgpu::Limits WebGpuContext::GetRequiredLimits(const wgpu::Adapter& adapter) const {
+   wgpu::Limits required_limits{};
+   wgpu::Limits adapter_limits;
+-  ORT_ENFORCE(adapter.GetLimits(&adapter_limits));
++  ORT_ENFORCE(adapter.GetLimits(&adapter_limits) == wgpu::Status::Success);
+ 
+   required_limits.maxBindGroups = adapter_limits.maxBindGroups;
+   required_limits.maxComputeWorkgroupStorageSize = adapter_limits.maxComputeWorkgroupStorageSize;

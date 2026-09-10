@@ -1,0 +1,57 @@
+{
+  "name": "dawn",
+  "version-string": "v20260817.213942",
+  "port-version": 5,
+  "description": "Dawn, a native WebGPU implementation.",
+  "homepage": "https://dawn.googlesource.com/dawn",
+  "license": "BSD-3-Clause",
+  "dependencies": [
+    { "name": "vcpkg-cmake", "host": true },
+    { "name": "vcpkg-cmake-config", "host": true },
+    { "name": "abseil", "version>=": "20250127.1" },
+    { "name": "protobuf", "version>=": "3.21.12" },
+    {
+      "name": "spirv-headers",
+      "version>=": "1.4.304.1",
+      "platform": "!emscripten"
+    },
+    {
+      "name": "spirv-tools",
+      "version>=": "1.4.304.1",
+      "platform": "!emscripten"
+    },
+    {
+      "name": "vulkan-headers",
+      "version>=": "1.4.304.1#1",
+      "platform": "(windows | linux) & (arm64 | x64)"
+    },
+    {
+      "name": "vulkan-utility-libraries",
+      "version>=": "1.4.304.1",
+      "platform": "(windows | linux) & (arm64 | x64)"
+    }
+  ],
+  "features": {
+    "windows-use-d3d12": {
+      "description": "Enable D3D12 backend on Windows.",
+      "dependencies": [
+        {
+          "name": "directx-dxc",
+          "version>=": "2025-02-20#1",
+          "platform": "windows & !arm32"
+        },
+        {
+          "name": "directx-headers",
+          "version>=": "1.615.0",
+          "platform": "windows & !arm32"
+        }
+      ]
+    },
+    "windows-use-vulkan": {
+      "description": "Enable Vulkan backend on Windows."
+    }
+  },
+  "default-features": [
+    { "name": "windows-use-d3d12", "platform": "windows & !arm32" }
+  ]
+}

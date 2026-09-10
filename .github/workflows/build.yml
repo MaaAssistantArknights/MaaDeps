@@ -31,21 +31,17 @@ jobs:
     runs-on: ${{ matrix.os == 'macos' && 'macos-15' || format('{0}-latest', matrix.os) }}
     timeout-minutes: 720
     steps:
-      - name: Windows runner hack
+      - name: (Windows) Configure Windows Defender exclusions
         if: runner.os == 'Windows'
-        shell: cmd
+        shell: powershell
         run: |
-          dir d:\a
-          cd ..
-          mkdir C:\MaaDeps
-          rmdir MaaDeps
-          mklink /j MaaDeps C:\MaaDeps
-          dism /Online /Disable-Feature /FeatureName:Windows-Defender /Remove /NoRestart /Quiet
-          cd .
+          Add-MpPreference -ExclusionPath "D:\a", "C:\actions-runner"
+          Add-MpPreference -ExclusionProcess "cl.exe", "link.exe", "ninja.exe", "vcpkg.exe", "ccache.exe"
+          Get-MpPreference | Select-Object -ExpandProperty ExclusionPath
 
-      - name: Windows runner hack (2)
+      - name: (Windows) Configure pagefile
         if: runner.os == 'Windows'
-        uses: al-cheb/configure-pagefile-action@v1.3
+        uses: al-cheb/configure-pagefile-action@v1.5
         with:
           minimum-size: 16GB
           maximum-size: 16GB
@@ -68,7 +64,7 @@ jobs:
       #     docker-images: true
       #     swap-storage: true
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           submodules: "recursive"
 
@@ -134,7 +130,7 @@ jobs:
         run: |
           cmake --version
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v6
         with:
           path: |
             vcpkg/downloads/
@@ -153,7 +149,7 @@ jobs:
       #     mkdir -p vcpkg/archives
       #     echo "VCPKG_DEFAULT_BINARY_CACHE=$PWD/vcpkg/archives" >> $GITHUB_ENV
 
-      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: TheMrMilchmann/setup-msvc-dev@v4
         if: matrix.os == 'windows'
         id: msvc-env
         with:
@@ -169,6 +165,7 @@ jobs:
         uses: Chocobo1/setup-ccache-action@v1
         with:
           windows_compile_environment: msvc
+
 
       # vcpkg will clean environment so that ccache is not used anyway
       # - name: post-setup cache (windows)
@@ -224,14 +221,14 @@ jobs:
           tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log
 
       - name: Upload Logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: logs-${{ env.TARGET }}
           path: logs.tar
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tarball-${{ env.TARGET }}
           path: tarball
