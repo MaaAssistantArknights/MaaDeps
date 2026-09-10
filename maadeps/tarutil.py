@@ -51,7 +51,12 @@ def open_tar_xz(out_path):
             except Exception:
                 if proc.stdin and not proc.stdin.closed:
                     proc.stdin.close()
-                proc.kill()
+                try:
+                    proc.kill()
+                except ProcessLookupError:
+                    pass
+                finally:
+                    proc.wait()
                 if out_path.exists():
                     try:
                         out_path.unlink()
@@ -63,6 +68,11 @@ def open_tar_xz(out_path):
                     proc.stdin.close()
                 proc.wait()
                 if proc.returncode != 0:
+                    if out_path.exists():
+                        try:
+                            out_path.unlink()
+                        except OSError:
+                            pass
                     raise RuntimeError(f"xz failed with returncode {proc.returncode}")
     else:
         print(f"Compressing {out_path} using built-in tarfile (single-threaded fallback)...")
