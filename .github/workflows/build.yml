@@ -9,6 +9,10 @@ on:
         default: true
         description: Use binary cache
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 jobs:
   build-maadeps:
     strategy:
@@ -24,6 +28,11 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      ENABLE_CACHE: ${{ !startsWith(github.ref, 'refs/tags/') && (github.event_name != 'workflow_dispatch' || inputs.use-cache) }}
+      VCPKG_KEEP_ENV_VARS: "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK;ccache_symlinks_path;ANDROID_CCACHE;NDK_CCACHE"
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
     # Pin macOS to macos-15 (Apple Silicon). GitHub is rolling macos-latest over
     # to macos-26 (Xcode 26.5 / AppleClang 21), whose libc++ marks is_pod /
     # is_floating_point / is_signed / is_unsigned [[no_specializations]] and breaks
@@ -39,123 +48,79 @@ jobs:
           Add-MpPreference -ExclusionProcess "cl.exe", "link.exe", "ninja.exe", "vcpkg.exe", "ccache.exe"
           Get-MpPreference | Select-Object -ExpandProperty ExclusionPath
 
-      - name: (Windows) Configure pagefile
-        if: runner.os == 'Windows'
-        uses: al-cheb/configure-pagefile-action@v1.5
-        with:
-          minimum-size: 16GB
-          maximum-size: 16GB
-          disk-root: "D:"
-
-      # - name: Free Disk Space (Ubuntu) for cuda
-      #   if: (runner.os == 'Linux') && (!contains(matrix.arch, 'android'))
-      #   uses: jlumbroso/free-disk-space@main
-      #   with:
-      #     # this might remove tools that are actually needed,
-      #     # if set to "true" but frees about 6 GB
-      #     tool-cache: false
-          
-      #     # all of these default to true, but feel free to set to
-      #     # "false" if necessary for your workflow
-      #     android: true
-      #     dotnet: true
-      #     haskell: true
-      #     large-packages: true
-      #     docker-images: true
-      #     swap-storage: true
-
-      - uses: actions/checkout@v7
+      - name: Checkout repository
+        uses: actions/checkout@v7
         with:
           submodules: "recursive"
 
-      - name: Install Packages on Linux
+      - name: (Linux) Install dependencies via apt
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf nasm
+          sudo apt-get install -y ninja-build python3-pyelftools elfutils patchelf nasm ccache
           sudo apt-get install -y autoconf automake autoconf-archive
 
-      # - name: Install Cross-Compiler for Linux
-      #   if: runner.os == 'Linux' && matrix.arch == 'arm64'
-      #   run: |
-      #     sudo apt install crossbuild-essential-arm64
-
-      - name: Fetch toolchains
+      - name: (Linux) Fetch toolchain and set OBJCOPY
         if: runner.os == 'Linux' && !contains(matrix.arch, 'android')
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 linux-toolchain-download.py ${{ matrix.arch }}
+          echo "OBJCOPY=$(pwd)/x-tools/llvm/bin/llvm-objcopy" >> $GITHUB_ENV
 
-      # - uses: Jimver/cuda-toolkit@v0.2.18
-      #   if: (runner.os == 'Linux' || runner.os == 'Windows') && (!contains(matrix.arch, 'android'))
-      #   id: cuda-toolkit
-      #   with:
-      #     log-file-suffix: '${{ matrix.arch }}-${{ runner.os }}.txt'
-    
-      - uses: nttld/setup-ndk@v1
+      - name: (Android) Setup Android NDK
         if: contains(matrix.arch, 'android')
         id: setup-ndk
+        uses: nttld/setup-ndk@v1
         with:
           ndk-version: r29
           add-to-path: false
 
-      - name: Install Packages on MacOS
+      - name: (macOS) Install dependencies via Homebrew
         if: runner.os == 'macOS'
         run: |
           brew update
           brew install ccache ninja pkg-config nasm bison
           brew install autoconf automake autoconf-archive
-
           brew install bash gnu-sed gnu-tar
           echo "$(brew --prefix)/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
           echo "$(brew --prefix)/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
-
           brew uninstall cmake
 
-        #   brew unlink python
-        #   brew link --overwrite python
-
-      - name: Install cmake on MacOS
+      - name: (macOS) Install CMake 3.31
         if: runner.os == 'macOS'
         run: |
           wget -q https://github.com/Kitware/CMake/releases/download/v3.31.8/cmake-3.31.8-macos-universal.tar.gz
-          tar zxvf cmake-3.31.8-macos-universal.tar.gz
+          tar zxf cmake-3.31.8-macos-universal.tar.gz
           mv cmake-3.31.8-macos-universal/CMake.app .
-          rmdir cmake-3.31.8-macos-universal
-          echo "PATH=`pwd`/CMake.app/Contents/bin:$PATH" >> $GITHUB_ENV
-      
-      - name: Check cmake on MacOS
-        if: runner.os == 'macOS'
-        run: |
-          cmake --version
+          rm -rf cmake-3.31.8-macos-universal cmake-3.31.8-macos-universal.tar.gz
+          echo "PATH=$(pwd)/CMake.app/Contents/bin:$PATH" >> $GITHUB_ENV
+          ./CMake.app/Contents/bin/cmake --version
 
-      - uses: actions/cache@v6
+
+      - name: Cache vcpkg binary archives
+        if: env.ENABLE_CACHE == 'true'
+        uses: actions/cache@v6
         with:
           path: |
-            vcpkg/downloads/
-          key: cache-downloads-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay', 'vcpkg*.json') }}
+            vcpkg/archives/
+          key: cache-archives-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay/**', 'vcpkg*.json') }}
+          restore-keys: |
+            cache-archives-${{ matrix.os }}-${{ matrix.arch }}-
 
-      # no symbols if installed from binary archive
-      # - uses: actions/cache/restore@v3
-      #   if: github.event.inputs.use-cache
-      #   with:
-      #     path: |
-      #       vcpkg/archives/
-      #     key: cache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay') }}
+      - name: Setup vcpkg binary cache directory
+        if: env.ENABLE_CACHE == 'true'
+        run: |
+          mkdir -p vcpkg/archives
 
-      # # this should work on both bash and pwsh, and giving native path on windows
-      # - run: |
-      #     mkdir -p vcpkg/archives
-      #     echo "VCPKG_DEFAULT_BINARY_CACHE=$PWD/vcpkg/archives" >> $GITHUB_ENV
-
-      - uses: TheMrMilchmann/setup-msvc-dev@v4
+      - name: (Windows) Setup MSVC developer environment
         if: matrix.os == 'windows'
         id: msvc-env
+        uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: amd64${{ matrix.arch != 'x64' && format('_{0}', matrix.arch) || '' }}
 
-      - name: Setup MSVC environment
+      - name: (Windows) Configure MSVC compiler environment
         if: matrix.os == 'windows'
         run: |
           echo "CC=cl" >> $GITHUB_ENV
@@ -164,23 +129,32 @@ jobs:
       - name: Setup ccache
         uses: Chocobo1/setup-ccache-action@v1
         with:
-          windows_compile_environment: msvc
+          windows_compile_environment: ${{ matrix.os == 'windows' && 'msvc' || '' }}
+          override_cache_key: ccache-${{ matrix.os }}-${{ matrix.arch }}-${{ github.sha }}
+          override_cache_key_fallback: |
+            ccache-${{ matrix.os }}-${{ matrix.arch }}-
+          ccache_options: |
+            max_size=1.0G
 
+      - name: Configure ccache compiler launcher path
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            CCACHE_BIN=$(which ccache 2>/dev/null || true)
+            if [ -z "$CCACHE_BIN" ] && [ -n "$ccache_symlinks_path" ] && [ -f "$ccache_symlinks_path/ccache.exe" ]; then
+              CCACHE_BIN="$ccache_symlinks_path/ccache.exe"
+            fi
+            if [ -n "$CCACHE_BIN" ]; then
+              CCACHE_PATH=$(cygpath -m "$CCACHE_BIN")
+            fi
+          else
+            CCACHE_PATH=$(which ccache)
+          fi
+          if [ -n "$CCACHE_PATH" ]; then
+            echo "CMAKE_C_COMPILER_LAUNCHER=${CCACHE_PATH}" >> $GITHUB_ENV
+            echo "CMAKE_CXX_COMPILER_LAUNCHER=${CCACHE_PATH}" >> $GITHUB_ENV
+          fi
 
-      # vcpkg will clean environment so that ccache is not used anyway
-      # - name: post-setup cache (windows)
-      #   if: runner.os == 'Windows'
-      #   shell: cmd
-      #   run: |
-      #     echo "PATH=%ccache_symlinks_path%;%PATH%" >> %GITHUB_ENV%
-
-      # - name: enable NTFS compression (windows)
-      #   if: runner.os == 'Windows'
-      #   shell: cmd
-      #   run: |
-      #     compact /c /q vcpkg
-
-      - name: Set target
+      - name: Configure target platform
         run: |
           lower() { printf '%s\n' "${1,,}"; }
 
@@ -192,15 +166,9 @@ jobs:
             echo "TARGET=${{ matrix.arch }}-${OS}" >> $GITHUB_ENV
           fi
 
-      - name: Set OBJCOPY
-        if: runner.os == 'Linux' && !contains(matrix.arch, 'android')
-        run: |
-          echo "OBJCOPY=`pwd`/x-tools/llvm/bin/llvm-objcopy" >> $GITHUB_ENV
-
       - name: Build MaaDeps
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-          # CUDAToolkit_ROOT: ${{ steps.cuda-toolkit.outputs.CUDA_PATH }}
         run: |
           for attempt in 1 2 3
           do
@@ -214,26 +182,28 @@ jobs:
             [[ $attempt != 3 ]]  # fail on last attempt
           done
 
-      - name: Collect Logs
+      - name: Collect build logs
         if: always()
         run: |
           shopt -s globstar
           tar caf logs.tar --ignore-failed-read vcpkg/buildtrees/**/*.log
 
-      - name: Upload Logs
+      - name: Upload build logs
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: logs-${{ env.TARGET }}
           path: logs.tar
+          compression-level: 0
 
-      - name: Upload Artifact
+      - name: Upload release tarball
         uses: actions/upload-artifact@v7
         with:
           name: tarball-${{ env.TARGET }}
           path: tarball
+          compression-level: 0
 
-      - name: release
+      - name: (Release) Publish release assets
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -242,11 +212,3 @@ jobs:
         run: |
           gh release create "$TAG_NAME" --prerelease || true  # accept existing release
           gh release upload "$TAG_NAME" tarball/*
-
-      # - name: cache binary archives
-      #   uses: actions/cache/save@v3
-      #   if: github.event.inputs.use-cache
-      #   with:
-      #     path: |
-      #       vcpkg/archives/
-      #     key: cache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay') }}

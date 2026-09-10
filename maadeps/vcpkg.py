@@ -27,6 +27,30 @@ def bootstrap(target_triplet=None):
     os.environ["VCPKG_OVERLAY_TRIPLETS"] = os.path.join(basedir, "vcpkg-overlay", "triplets")
     os.environ["VCPKG_OVERLAY_PORTS"] = os.path.join(basedir, "vcpkg-overlay", "ports")
 
+    archives_dir = os.path.join(root, "archives")
+    if os.path.exists(archives_dir) and "VCPKG_DEFAULT_BINARY_CACHE" not in os.environ:
+        os.environ["VCPKG_DEFAULT_BINARY_CACHE"] = archives_dir
+
+    ccache_vars = "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK;ANDROID_CCACHE;NDK_CCACHE"
+    if "VCPKG_KEEP_ENV_VARS" in os.environ:
+        if "CMAKE_C_COMPILER_LAUNCHER" not in os.environ["VCPKG_KEEP_ENV_VARS"]:
+            os.environ["VCPKG_KEEP_ENV_VARS"] += f";{ccache_vars}"
+    else:
+        os.environ["VCPKG_KEEP_ENV_VARS"] = ccache_vars
+
+    import shutil
+    from pathlib import Path
+    ccache_bin = shutil.which("ccache")
+    if not ccache_bin and os.environ.get("ccache_symlinks_path"):
+        cand = Path(os.environ["ccache_symlinks_path"]) / ("ccache.exe" if sys.platform == "win32" else "ccache")
+        if cand.is_file():
+            ccache_bin = str(cand)
+    if ccache_bin and Path(ccache_bin).is_file():
+        os.environ.setdefault("CMAKE_C_COMPILER_LAUNCHER", ccache_bin)
+        os.environ.setdefault("CMAKE_CXX_COMPILER_LAUNCHER", ccache_bin)
+        os.environ.setdefault("ANDROID_CCACHE", ccache_bin)
+        os.environ.setdefault("NDK_CCACHE", ccache_bin)
+
     if os.name == "nt":
         script_name = "bootstrap-vcpkg.bat"
         executable_name = "vcpkg.exe"
