@@ -48,14 +48,6 @@ jobs:
           Add-MpPreference -ExclusionProcess "cl.exe", "link.exe", "ninja.exe", "vcpkg.exe", "ccache.exe"
           Get-MpPreference | Select-Object -ExpandProperty ExclusionPath
 
-      - name: (Windows) Configure pagefile
-        if: runner.os == 'Windows'
-        uses: al-cheb/configure-pagefile-action@v1.5
-        with:
-          minimum-size: 16GB
-          maximum-size: 16GB
-          disk-root: "D:"
-
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
