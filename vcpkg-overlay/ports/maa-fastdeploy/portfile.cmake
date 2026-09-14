@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO SherkeyXD/FastDeploy
-    REF f4494710a63244f11c841057680d32fdabfba956
-    SHA512 14c667ba42ad6abea32d07ca1e4a2f0e814c4c09a42b0fa5759923c48dccbc1e9b2dc24ab5ced7bd6104145e5c882d945f2054743d4e3cac921c568ea828f7ee
+    REPO MaaXYZ/FastDeploy
+    REF fe7d5ba01189e780d32c055c565942bd61ef6ddf
+    SHA512 ec8f37ecb592940948d4f40619f99bede45dd624db7c8a528b31f00decd77a34d7d91dc3a3454c86c5a6beae5901a7db2c40664f5db9a023f5ff98d29f3659ac
 )
 
 vcpkg_cmake_configure(
