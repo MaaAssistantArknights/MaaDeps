@@ -129,12 +129,13 @@ jobs:
       - name: Setup ccache
         uses: Chocobo1/setup-ccache-action@v1
         with:
+          update_packager_index: false
           windows_compile_environment: ${{ matrix.os == 'windows' && 'msvc' || '' }}
           override_cache_key: ccache-${{ matrix.os }}-${{ matrix.arch }}-${{ github.sha }}
           override_cache_key_fallback: |
             ccache-${{ matrix.os }}-${{ matrix.arch }}-
           ccache_options: |
-            max_size=1.0G
+            max_size=500M
 
       - name: Configure ccache compiler launcher path
         run: |
