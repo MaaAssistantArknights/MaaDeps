@@ -27,12 +27,7 @@ jobs:
       ENABLE_CACHE: ${{ !startsWith(github.ref, 'refs/tags/') && (github.event_name != 'workflow_dispatch' || inputs.use-cache) }}
       VCPKG_KEEP_ENV_VARS: "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK;ccache_symlinks_path;ANDROID_CCACHE;NDK_CCACHE"
       CCACHE_BASEDIR: ${{ github.workspace }}
-      CCACHE_COMPILERCHECK: content
-    # Pin macOS to macos-15 (Apple Silicon). GitHub is rolling macos-latest over
-    # to macos-26 (Xcode 26.5 / AppleClang 21), whose libc++ marks is_pod /
-    # is_floating_point / is_signed / is_unsigned [[no_specializations]] and breaks
-    # maa-fastdeploy float16.h. Stopgap until the float16 patch covers Apple libc++>=19.
-    runs-on: ${{ matrix.os == 'macos' && 'macos-15' || (matrix.os == 'windows' && matrix.arch == 'arm64' && 'windows-11-arm') || (matrix.os == 'windows' && 'windows-latest') || 'ubuntu-latest' }}
+    runs-on: ${{ (matrix.os == 'windows' && matrix.arch == 'arm64') && 'windows-11-arm' || (matrix.os == 'windows' && 'windows-latest') || (matrix.os == 'macos' && 'macos-latest') || 'ubuntu-latest' }}
     timeout-minutes: 720
     steps:
       - name: (Windows) Configure Windows Defender exclusions
