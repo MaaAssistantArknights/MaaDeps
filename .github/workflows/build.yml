@@ -28,6 +28,10 @@ jobs:
       VCPKG_KEEP_ENV_VARS: "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK;ccache_symlinks_path;ANDROID_CCACHE;NDK_CCACHE"
       CCACHE_BASEDIR: ${{ github.workspace }}
     runs-on: ${{ (matrix.os == 'windows' && matrix.arch == 'arm64') && 'windows-11-arm' || (matrix.os == 'windows' && 'windows-latest') || (matrix.os == 'macos' && 'macos-latest') || 'ubuntu-latest' }}
+    # windows -> windows x64/arm64 原生编译
+    # linux -> x64 原生编译，arm64 用 x64 交叉编译
+    # macos -> arm64 原生编译，x64 用 arm64 交叉编译
+    # android -> 用 linux x64 环境交叉编译
     timeout-minutes: 720
     steps:
       - name: (Windows) Configure Windows Defender exclusions
