@@ -17,13 +17,8 @@ jobs:
   build-maadeps:
     strategy:
       matrix:
-        os: [ubuntu, windows, macos]
+        os: [windows, macos, linux, android]
         arch: [x64, arm64]
-        include:
-          - os: ubuntu
-            arch: arm64-android
-          - os: ubuntu
-            arch: x64-android
       fail-fast: false
     defaults:
       run:
@@ -37,7 +32,7 @@ jobs:
     # to macos-26 (Xcode 26.5 / AppleClang 21), whose libc++ marks is_pod /
     # is_floating_point / is_signed / is_unsigned [[no_specializations]] and breaks
     # maa-fastdeploy float16.h. Stopgap until the float16 patch covers Apple libc++>=19.
-    runs-on: ${{ matrix.os == 'macos' && 'macos-15' || format('{0}-latest', matrix.os) }}
+    runs-on: ${{ matrix.os == 'macos' && 'macos-15' || (matrix.os == 'windows' && matrix.arch == 'arm64' && 'windows-11-arm') || (matrix.os == 'windows' && 'windows-latest') || 'ubuntu-latest' }}
     timeout-minutes: 720
     steps:
       - name: (Windows) Configure Windows Defender exclusions
@@ -61,7 +56,7 @@ jobs:
           sudo apt-get install -y autoconf automake autoconf-archive
 
       - name: (Linux) Fetch toolchain and set OBJCOPY
-        if: runner.os == 'Linux' && !contains(matrix.arch, 'android')
+        if: matrix.os == 'linux'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -69,7 +64,7 @@ jobs:
           echo "OBJCOPY=$(pwd)/x-tools/llvm/bin/llvm-objcopy" >> $GITHUB_ENV
 
       - name: (Android) Setup Android NDK
-        if: contains(matrix.arch, 'android')
+        if: matrix.os == 'android'
         id: setup-ndk
         uses: nttld/setup-ndk@v1
         with:
@@ -104,9 +99,9 @@ jobs:
         with:
           path: |
             vcpkg/archives/
-          key: cache-archives-${{ matrix.os }}-${{ matrix.arch }}-${{ hashfiles('vcpkg-overlay/**', 'vcpkg*.json') }}
+          key: vcpkg/${{ matrix.os }}/${{ matrix.arch }}/${{ hashfiles('vcpkg-overlay/**', 'vcpkg*.json') }}
           restore-keys: |
-            cache-archives-${{ matrix.os }}-${{ matrix.arch }}-
+            vcpkg/${{ matrix.os }}/${{ matrix.arch }}/
 
       - name: Setup vcpkg binary cache directory
         if: env.ENABLE_CACHE == 'true'
@@ -118,7 +113,7 @@ jobs:
         id: msvc-env
         uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
-          arch: amd64${{ matrix.arch != 'x64' && format('_{0}', matrix.arch) || '' }}
+          arch: ${{ matrix.arch }}
 
       - name: (Windows) Configure MSVC compiler environment
         if: matrix.os == 'windows'
@@ -131,9 +126,9 @@ jobs:
         with:
           update_packager_index: false
           windows_compile_environment: ${{ matrix.os == 'windows' && 'msvc' || '' }}
-          override_cache_key: ccache-${{ matrix.os }}-${{ matrix.arch }}-${{ github.sha }}
+          override_cache_key: ccache/${{ matrix.os }}/${{ matrix.arch }}/${{ github.sha }}
           override_cache_key_fallback: |
-            ccache-${{ matrix.os }}-${{ matrix.arch }}-
+            ccache/${{ matrix.os }}/${{ matrix.arch }}/
           ccache_options: |
             max_size=500M
 
@@ -157,15 +152,11 @@ jobs:
 
       - name: Configure target platform
         run: |
-          lower() { printf '%s\n' "${1,,}"; }
-
-          if [[ "${{matrix.arch}}" == *"android"* ]]; then
-            echo "TARGET=${{ matrix.arch }}" >> $GITHUB_ENV
-          else
-            export RUNNER_OS=$(lower ${{runner.os}})
-            export OS=$(echo $RUNNER_OS | sed 's/macOS/osx/I')
-            echo "TARGET=${{ matrix.arch }}-${OS}" >> $GITHUB_ENV
+          OS="${{ matrix.os }}"
+          if [ "$OS" = "macos" ]; then
+            OS="osx"
           fi
+          echo "TARGET=${{ matrix.arch }}-$OS" >> $GITHUB_ENV
 
       - name: Build MaaDeps
         env:
