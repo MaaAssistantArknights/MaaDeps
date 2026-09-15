@@ -29,6 +29,9 @@ set(VCPKG_CMAKE_CONFIGURE_OPTIONS
   -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
 )
 
+string(APPEND VCPKG_CXX_FLAGS " /Zc:inline")
+string(APPEND VCPKG_C_FLAGS " /Zc:inline")
+
 find_program(CCACHE_EXE NAMES ccache clcache PATHS "C:/ProgramData/Chocolatey/bin" "C:/ProgramData/chocolatey/lib/ccache/tools" ENV ccache_symlinks_path)
 if(NOT CCACHE_EXE AND DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER})
   if(EXISTS "$ENV{CMAKE_C_COMPILER_LAUNCHER}" AND NOT IS_DIRECTORY "$ENV{CMAKE_C_COMPILER_LAUNCHER}")
