@@ -69,8 +69,6 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
         webgpu    onnxruntime_USE_WEBGPU
         webgpu    onnxruntime_USE_EXTERNAL_DAWN
         webgpu    onnxruntime_BUILD_DAWN_SHARED_LIBRARY
-    INVERTED_FEATURES
-        cuda      onnxruntime_USE_MEMORY_EFFICIENT_ATTENTION
 )
 
 if("cuda" IN_LIST FEATURES)
@@ -81,6 +79,11 @@ if("cuda" IN_LIST FEATURES)
         # "-DCMAKE_CUDA_ARCHITECTURES=native"
         # too much warnings about attribute
         "-DCMAKE_CUDA_FLAGS=-Xcudafe --diag_suppress=2803 -Wno-deprecated-gpu-targets"
+        "-Donnxruntime_USE_MEMORY_EFFICIENT_ATTENTION=ON"
+    )
+else()
+    list(APPEND FEATURE_OPTIONS
+        "-Donnxruntime_USE_MEMORY_EFFICIENT_ATTENTION=OFF"
     )
 endif()
 
@@ -122,6 +125,12 @@ vcpkg_cmake_configure(
         -Donnxruntime_ENABLE_LAZY_TENSOR=OFF
         -Donnxruntime_DISABLE_RTTI=OFF
         -Donnxruntime_DISABLE_ABSEIL=OFF
+        # 裁剪无用算子与模板实例化 (Maa 仅需视觉/神经网络模型，不需传统机器学习算子与稀疏/FP8类型)
+        -Donnxruntime_DISABLE_ML_OPS=ON
+        -Donnxruntime_DISABLE_SPARSE_TENSORS=ON
+        -Donnxruntime_DISABLE_FLOAT8_TYPES=ON
+        -Donnxruntime_BUILD_OPSCHEMA_LIB=OFF
+        -Donnxruntime_ENABLE_TRAINING_OPS=OFF
         # some other customizations ...
         --compile-no-warning-as-error
     OPTIONS_DEBUG
