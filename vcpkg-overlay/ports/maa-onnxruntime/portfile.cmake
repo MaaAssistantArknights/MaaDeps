@@ -135,7 +135,7 @@ vcpkg_cmake_configure(
         --compile-no-warning-as-error
     OPTIONS_DEBUG
         -Donnxruntime_ENABLE_MEMLEAK_CHECKER=OFF
-        -Donnxruntime_DEBUG_NODE_INPUTS_OUTPUTS=1
+        -Donnxruntime_DEBUG_NODE_INPUTS_OUTPUTS=0
     MAYBE_UNUSED_VARIABLES
         Python_EXECUTABLE
         onnxruntime_TENSORRT_PLACEHOLDER_BUILDER

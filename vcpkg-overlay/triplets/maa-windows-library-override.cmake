@@ -31,6 +31,7 @@ set(VCPKG_CMAKE_CONFIGURE_OPTIONS
 
 string(APPEND VCPKG_CXX_FLAGS " /Zc:inline")
 string(APPEND VCPKG_C_FLAGS " /Zc:inline")
+string(APPEND VCPKG_LINKER_FLAGS " /cgthreads:4 /INCREMENTAL:NO")
 
 find_program(CCACHE_EXE NAMES ccache clcache PATHS "C:/ProgramData/Chocolatey/bin" "C:/ProgramData/chocolatey/lib/ccache/tools" ENV ccache_symlinks_path)
 if(NOT CCACHE_EXE AND DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER})
