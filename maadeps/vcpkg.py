@@ -95,6 +95,4 @@ def install_manifest(manifest_root, triplet=None):
         "--host-triplet",
         _get_host_triplet(triplet),
     ]
-    if sys.platform == "win32":
-        cmd.append("--clean-buildtrees-after-build")
     subprocess.check_call(cmd, cwd=manifest_root)
