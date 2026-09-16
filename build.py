@@ -44,24 +44,26 @@ def clean():
 def get_tarball_triplet():
     return vcpkg.triplet.removeprefix("maa-")
 
+from maadeps.tarutil import open_tar_xz
+
 @task
 def bin_tarball():
-    import tarfile
     os.chdir(basedir)
     os.makedirs("tarball", exist_ok=True)
-    runtimefiles = Path(runtime.get_runtime_dir()).glob("**/*")
-    dbgfiles = Path(runtime.get_debug_dir()).glob("**/*")
+    runtime_dir = Path(runtime.get_runtime_dir())
+    debug_dir = Path(runtime.get_debug_dir())
+    runtimefiles = [p for p in runtime_dir.glob("**/*") if p.is_file() or p.is_symlink()] if runtime_dir.exists() else []
+    dbgfiles = [p for p in debug_dir.glob("**/*") if p.is_file() or p.is_symlink()] if debug_dir.exists() else []
     tarball_triplet = get_tarball_triplet()
 
-
     if runtimefiles:
-        with tarfile.TarFile.open(f"tarball/MaaDeps-{tarball_triplet}-runtime.tar.xz", 'w:xz') as runtimetar:
+        with open_tar_xz(f"tarball/MaaDeps-{tarball_triplet}-runtime.tar.xz") as runtimetar:
             for fspath in runtimefiles:
                 runtimetar.add(fspath, arcname=fspath.relative_to(basedir))
     if dbgfiles:
-        with tarfile.TarFile.open(f"tarball/MaaDeps-{tarball_triplet}-dbg.tar.xz", 'w:xz') as dbgtar:
+        with open_tar_xz(f"tarball/MaaDeps-{tarball_triplet}-dbg.tar.xz") as dbgtar:
             for fspath in dbgfiles:
-                dbgtar.add(fspath, arcname=fspath.relative_to(runtime.get_debug_dir()))
+                dbgtar.add(fspath, arcname=fspath.relative_to(debug_dir))
 
 @task
 def sdk_tarball():
@@ -92,7 +94,7 @@ def sdk_tarball():
             return info
     else:
         sdk_filter = None
-    with tarfile.TarFile.open(f"tarball/MaaDeps-{tarball_triplet}-devel.tar.xz", 'w:xz') as sdktar:
+    with open_tar_xz(f"tarball/MaaDeps-{tarball_triplet}-devel.tar.xz") as sdktar:
         sdktar.add(f"./vcpkg/installed/{vcpkg.triplet}", filter=sdk_filter)
         # sdktar.add(f"./vcpkg/installed/{vcpkg.triplet.removeprefix('maa-').replace('arm64', 'x64')}/tools")
 

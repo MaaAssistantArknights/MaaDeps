@@ -1,10 +1,23 @@
-# if(PORT MATCHES "onnxruntime")
-#     message("add -Wno-error=shorten-64-to-32 for ${PORT}")
-#     string(APPEND VCPKG_C_FLAGS "-Wno-error=shorten-64-to-32")
-#     string(APPEND VCPKG_CXX_FLAGS "-Wno-error=shorten-64-to-32")
-# endif()
-# if (PORT MATCHES "curl")
-#     message("add -Wno-error=implicit-function-declaration for ${PORT}")
-#     string(APPEND VCPKG_C_FLAGS "-Wno-error=implicit-function-declaration")
-#     string(APPEND VCPKG_CXX_FLAGS "-Wno-error=implicit-function-declaration")
-# endif()
+find_program(CCACHE_EXE ccache)
+if(NOT CCACHE_EXE AND DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER})
+    set(CCACHE_EXE "$ENV{CMAKE_C_COMPILER_LAUNCHER}")
+endif()
+if(NOT CCACHE_EXE AND DEFINED ENV{ANDROID_CCACHE})
+    set(CCACHE_EXE "$ENV{ANDROID_CCACHE}")
+endif()
+
+if(CCACHE_EXE)
+    set(ENV{ANDROID_CCACHE} "${CCACHE_EXE}")
+    set(ENV{NDK_CCACHE} "${CCACHE_EXE}")
+    list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS
+        "-DANDROID_CCACHE=${CCACHE_EXE}"
+        "-DNDK_CCACHE=${CCACHE_EXE}"
+    )
+    if(NOT "${VCPKG_CMAKE_CONFIGURE_OPTIONS}" MATCHES "CMAKE_C_COMPILER_LAUNCHER")
+        list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS
+            "-DCMAKE_C_COMPILER_LAUNCHER=${CCACHE_EXE}"
+            "-DCMAKE_CXX_COMPILER_LAUNCHER=${CCACHE_EXE}"
+        )
+    endif()
+endif()
+
