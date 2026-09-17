@@ -38,10 +38,10 @@ def open_tar_xz(out_path):
     out_path.parent.mkdir(parents=True, exist_ok=True)
     xz_exe = find_xz_executable()
     if xz_exe:
-        print(f"Compressing {out_path} using multi-threaded xz ({xz_exe} -T0)...")
+        print(f"Compressing {out_path} using multi-threaded xz ({xz_exe} -T0 -3)...", flush=True)
         with open(out_path, "wb") as out_f:
             proc = subprocess.Popen(
-                [xz_exe, "-T0"],
+                [xz_exe, "-T0", "-3"],
                 stdin=subprocess.PIPE,
                 stdout=out_f,
             )
@@ -75,6 +75,6 @@ def open_tar_xz(out_path):
                             pass
                     raise RuntimeError(f"xz failed with returncode {proc.returncode}")
     else:
-        print(f"Compressing {out_path} using built-in tarfile (single-threaded fallback)...")
-        with tarfile.TarFile.open(out_path, "w:xz") as tar:
+        print(f"Compressing {out_path} using built-in tarfile (single-threaded fallback, preset=3)...", flush=True)
+        with tarfile.TarFile.open(out_path, "w:xz", preset=3) as tar:
             yield tar

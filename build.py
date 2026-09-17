@@ -2,6 +2,8 @@
 import os
 import sys
 sys.dont_write_bytecode = True
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True)
 import subprocess
 import glob
 from pathlib import Path
