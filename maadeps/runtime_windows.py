@@ -1,5 +1,5 @@
 import shutil
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 
 exclude = [
@@ -44,8 +44,13 @@ def install_runtime_prefix(prefix, target_dir, debug_dir):
                 except UnicodeDecodeError:
                     pdbfile = pdbfile.decode('mbcs')
                 pdbfile = Path(pdbfile)
-                if pdbfile.is_relative_to(vcpkg.root):
+                if pdbfile.is_relative_to(vcpkg.root) and pdbfile.is_file():
                     print("found pdb for", file, "->", pdbfile)
                     install_file(pdbfile, debug_dir)
+                else:
+                    installed_pdb = file.parent / PureWindowsPath(pdbfile).name
+                    if installed_pdb.is_file():
+                        print("found installed pdb for", file, "->", installed_pdb)
+                        install_file(installed_pdb, debug_dir)
             except:
                 pass
