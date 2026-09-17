@@ -25,7 +25,6 @@ jobs:
         shell: bash
     env:
       ENABLE_CACHE: ${{ !startsWith(github.ref, 'refs/tags/') && (github.event_name != 'workflow_dispatch' || inputs.use-cache) }}
-      VCPKG_KEEP_ENV_VARS: "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK;ccache_symlinks_path;ANDROID_CCACHE;NDK_CCACHE"
     runs-on: ${{ (matrix.os == 'windows' && matrix.arch == 'arm64') && 'windows-11-arm' || (matrix.os == 'windows' && 'windows-latest') || (matrix.os == 'macos' && 'macos-latest') || 'ubuntu-latest' }}
     # windows -> windows x64/arm64 原生编译
     # linux -> x64 原生编译，arm64 用 x64 交叉编译
@@ -38,7 +37,7 @@ jobs:
         shell: powershell
         run: |
           Add-MpPreference -ExclusionPath "D:\a", "C:\actions-runner"
-          Add-MpPreference -ExclusionProcess "cl.exe", "link.exe", "ninja.exe", "vcpkg.exe", "ccache.exe"
+          Add-MpPreference -ExclusionProcess "cl.exe", "link.exe", "ninja.exe", "vcpkg.exe"
           Get-MpPreference | Select-Object -ExpandProperty ExclusionPath
 
       - name: Checkout repository
@@ -91,20 +90,6 @@ jobs:
           ./CMake.app/Contents/bin/cmake --version
 
 
-      - name: Cache vcpkg binary archives
-        if: env.ENABLE_CACHE == 'true'
-        uses: actions/cache@v6
-        with:
-          path: |
-            vcpkg/archives/
-          key: vcpkg/${{ matrix.os }}/${{ matrix.arch }}/${{ hashfiles('vcpkg-overlay/**', 'vcpkg*.json') }}
-          restore-keys: |
-            vcpkg/${{ matrix.os }}/${{ matrix.arch }}/
-
-      - name: Setup vcpkg binary cache directory
-        if: env.ENABLE_CACHE == 'true'
-        run: |
-          mkdir -p vcpkg/archives
 
       - name: (Windows) Setup MSVC developer environment
         if: matrix.os == 'windows'
@@ -129,6 +114,25 @@ jobs:
           fi
           echo "TARGET=${{ matrix.arch }}-$OS" >> $GITHUB_ENV
 
+      - name: Compute vcpkg dependency hash
+        if: env.ENABLE_CACHE == 'true'
+        id: vcpkg-hash
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          python3 build.py --dry-run --target maa-$TARGET
+          python3 -c "import hashlib, pathlib; print('hash=' + hashlib.sha256(pathlib.Path('vcpkg_dry_run.txt').read_bytes()).hexdigest())" >> "$GITHUB_OUTPUT"
+
+      - name: Restore vcpkg binary cache
+        if: env.ENABLE_CACHE == 'true'
+        id: cache-vcpkg-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: vcpkg/archives/
+          key: vcpkg/${{ matrix.os }}/${{ matrix.arch }}/${{ steps.vcpkg-hash.outputs.hash }}
+          restore-keys: |
+            vcpkg/${{ matrix.os }}/${{ matrix.arch }}/
+
       - name: Build MaaDeps
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
@@ -144,6 +148,18 @@ jobs:
             du -sh vcpkg/buildtrees/*
             [[ $attempt != 3 ]]  # fail on last attempt
           done
+
+      - name: Prune stale vcpkg binary archives
+        if: env.ENABLE_CACHE == 'true'
+        run: |
+          python3 -c "from maadeps import vcpkg; vcpkg.prune_archives()"
+
+      - name: Save vcpkg binary cache
+        if: env.ENABLE_CACHE == 'true' && steps.cache-vcpkg-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: vcpkg/archives/
+          key: vcpkg/${{ matrix.os }}/${{ matrix.arch }}/${{ steps.vcpkg-hash.outputs.hash }}
 
       - name: Collect build logs
         if: always()

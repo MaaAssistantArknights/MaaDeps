@@ -28,28 +28,9 @@ def bootstrap(target_triplet=None):
     os.environ["VCPKG_OVERLAY_PORTS"] = os.path.join(basedir, "vcpkg-overlay", "ports")
 
     archives_dir = os.path.join(root, "archives")
-    if os.path.exists(archives_dir) and "VCPKG_DEFAULT_BINARY_CACHE" not in os.environ:
+    if "VCPKG_DEFAULT_BINARY_CACHE" not in os.environ:
+        os.makedirs(archives_dir, exist_ok=True)
         os.environ["VCPKG_DEFAULT_BINARY_CACHE"] = archives_dir
-
-    ccache_vars = "CMAKE_C_COMPILER_LAUNCHER;CMAKE_CXX_COMPILER_LAUNCHER;CCACHE_DIR;CCACHE_BASEDIR;CCACHE_COMPILERCHECK;ANDROID_CCACHE;NDK_CCACHE"
-    if "VCPKG_KEEP_ENV_VARS" in os.environ:
-        if "CMAKE_C_COMPILER_LAUNCHER" not in os.environ["VCPKG_KEEP_ENV_VARS"]:
-            os.environ["VCPKG_KEEP_ENV_VARS"] += f";{ccache_vars}"
-    else:
-        os.environ["VCPKG_KEEP_ENV_VARS"] = ccache_vars
-
-    import shutil
-    from pathlib import Path
-    ccache_bin = shutil.which("ccache")
-    if not ccache_bin and os.environ.get("ccache_symlinks_path"):
-        cand = Path(os.environ["ccache_symlinks_path"]) / ("ccache.exe" if sys.platform == "win32" else "ccache")
-        if cand.is_file():
-            ccache_bin = str(cand)
-    if ccache_bin and Path(ccache_bin).is_file():
-        os.environ.setdefault("CMAKE_C_COMPILER_LAUNCHER", ccache_bin)
-        os.environ.setdefault("CMAKE_CXX_COMPILER_LAUNCHER", ccache_bin)
-        os.environ.setdefault("ANDROID_CCACHE", ccache_bin)
-        os.environ.setdefault("NDK_CCACHE", ccache_bin)
 
     if os.name == "nt":
         script_name = "bootstrap-vcpkg.bat"
@@ -96,3 +77,52 @@ def install_manifest(manifest_root, triplet=None):
         _get_host_triplet(triplet),
     ]
     subprocess.check_call(cmd, cwd=manifest_root)
+
+def dry_run_manifest(manifest_root, output_file="vcpkg_dry_run.txt", triplet=None):
+    if triplet is None:
+        triplet = _this_module.triplet
+    if not os.path.isabs(output_file):
+        output_file = os.path.join(basedir, output_file)
+    cmd = [
+        os.path.join(root, "vcpkg"),
+        "install",
+        "--dry-run",
+        "--x-install-root=" + os.path.join(root, "installed"),
+        "--triplet",
+        triplet,
+        "--host-triplet",
+        _get_host_triplet(triplet),
+        f"--x-write-nuget-packages-config={output_file}",
+    ]
+    subprocess.check_call(cmd, cwd=manifest_root)
+
+def prune_archives():
+    from pathlib import Path
+    import re
+    status_file = Path(root) / "installed" / "vcpkg" / "status"
+    archives_dir = Path(os.environ.get("VCPKG_DEFAULT_BINARY_CACHE", os.path.join(root, "archives")))
+    if not status_file.is_file() or not archives_dir.is_dir():
+        return
+    active_abis = set(re.findall(r"Abi: ([0-9a-fA-F]+)", status_file.read_text(encoding="utf-8", errors="ignore")))
+    if not active_abis:
+        return
+    pruned = 0
+    kept = 0
+    for p in archives_dir.glob("**/*.zip"):
+        if p.stem not in active_abis:
+            print("Pruning stale binary archive:", p.name)
+            try:
+                p.unlink()
+                pruned += 1
+            except OSError as e:
+                print("Failed to delete stale archive:", p, e)
+        else:
+            kept += 1
+    for d in sorted(archives_dir.glob("*"), reverse=True):
+        if d.is_dir() and not any(d.iterdir()):
+            try:
+                d.rmdir()
+            except OSError:
+                pass
+    print(f"vcpkg archives pruned: {pruned} removed, {kept} retained.")
+

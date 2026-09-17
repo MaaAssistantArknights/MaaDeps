@@ -24,6 +24,10 @@ def main():
     session.parse_args(sys.argv)
 
     vcpkg_bootstrap()
+    if session.dry_run:
+        vcpkg.dry_run_manifest(basedir, "vcpkg_dry_run.txt")
+        return
+
     clean()
     vcpkg_install()
     runtime.sdk_ready()

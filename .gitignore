@@ -5,3 +5,4 @@ src
 x-tools
 
 __pycache__
+vcpkg_dry_run.txt
