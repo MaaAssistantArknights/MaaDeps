@@ -9,27 +9,23 @@
     {
       "name": "opencv",
       "default-features": false,
-      "features": ["eigen", "jpeg", "png", "tiff", "calib3d", "world"]
+      "features": ["eigen", "jpeg", "png", "calib3d", "world"]
     },
     {
       "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
       "name": "opencv4",
       "default-features": false,
-      "features": ["eigen", "jpeg", "png", "tiff", "calib3d", "world"]
+      "features": ["eigen", "jpeg", "png", "calib3d", "world"]
     },
     {
       "name": "maa-onnxruntime",
       "platform": "windows",
-      "features": ["directml"]
+      "features": ["directml", "webgpu"]
     },
     {
       "name": "maa-onnxruntime",
-      "platform": "osx",
-      "features": ["coreml"]
-    },
-    {
-      "name": "maa-onnxruntime",
-      "platform": "linux"
+      "platform": "linux | osx",
+      "features": ["webgpu"]
     },
     "maa-fastdeploy",
     {
@@ -44,7 +40,10 @@
     "boost-asio",
     "boost-core",
     "boost-dll",
-    "boost-process",
+    {
+      "name": "boost-process",
+      "platform": "!android"
+    },
     "boost-uuid"
   ]
 }
