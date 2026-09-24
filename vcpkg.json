@@ -24,7 +24,7 @@
     },
     {
       "name": "maa-onnxruntime",
-      "platform": "!windows",
+      "platform": "linux | osx",
       "features": ["webgpu"]
     },
     "maa-fastdeploy",

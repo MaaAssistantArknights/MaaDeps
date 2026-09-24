@@ -64,3 +64,17 @@ diff -ur a/cmake/onnxruntime_providers_webgpu.cmake b/cmake/onnxruntime_provider
      endif()
  
      if (WIN32 AND onnxruntime_ENABLE_DAWN_BACKEND_D3D12)
+@@ -240,9 +240,9 @@
+       # until we figure out how to resolve the packaging pipeline failures
+       #
+       # if (onnxruntime_USE_VCPKG)
+-      if (FALSE)
++      if (onnxruntime_USE_VCPKG)
+         find_package(directx-dxc CONFIG REQUIRED)
+-        target_link_libraries(onnxruntime_providers_webgpu Microsoft::DirectXShaderCompiler)
+-        target_link_libraries(onnxruntime_providers_webgpu Microsoft::DXIL)
++        target_link_libraries(onnxruntime_providers_webgpu PRIVATE Microsoft::DirectXShaderCompiler)
++        target_link_libraries(onnxruntime_providers_webgpu PRIVATE Microsoft::DXIL)
+         list(APPEND onnxruntime_providers_webgpu_dll_deps "$<TARGET_FILE:Microsoft::DXIL>")
+         list(APPEND onnxruntime_providers_webgpu_dll_deps "$<TARGET_FILE:Microsoft::DirectXShaderCompiler>")
+
