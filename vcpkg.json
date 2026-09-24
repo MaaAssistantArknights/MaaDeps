@@ -9,13 +9,13 @@
     {
       "name": "opencv",
       "default-features": false,
-      "features": ["eigen", "jpeg", "png", "tiff", "calib3d", "world"]
+      "features": ["eigen", "jpeg", "png", "calib3d", "world"]
     },
     {
       "$FIXME": "default-features: false for opencv doesn't get propagated to opencv4",
       "name": "opencv4",
       "default-features": false,
-      "features": ["eigen", "jpeg", "png", "tiff", "calib3d", "world"]
+      "features": ["eigen", "jpeg", "png", "calib3d", "world"]
     },
     {
       "name": "maa-onnxruntime",
