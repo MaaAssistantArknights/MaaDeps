@@ -52,6 +52,10 @@ else()
   list(PREPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/vcpkg/installed/${MAADEPS_TRIPLET}")
 endif()
 
+if(NOT DEFINED ZLIB_USE_STATIC_LIBS)
+  set(ZLIB_USE_STATIC_LIBS ON)
+endif()
+
 function(maadeps_install dest)
   if(MSVC)
     install(DIRECTORY "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/runtime/${MAADEPS_TRIPLET}/$<$<CONFIG:Debug>:msvc-debug/>" DESTINATION ${dest} USE_SOURCE_PERMISSIONS)
