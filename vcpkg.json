@@ -40,10 +40,7 @@
     "boost-asio",
     "boost-core",
     "boost-dll",
-    {
-      "name": "boost-process",
-      "platform": "!android"
-    },
+    "boost-process",
     "boost-uuid"
   ]
 }
